@@ -110,6 +110,22 @@ export default function UserPosts() {
       const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user || null);
       
+      // If username is "me", show current user's posts
+      if (username === "me" && session?.user) {
+        const { data: myProfile } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .maybeSingle();
+        
+        if (myProfile) {
+          setProfile(myProfile);
+          setIsOwner(true);
+          await fetchPosts(session.user.id);
+          return;
+        }
+      }
+      
       const { data: profileData } = await supabase
         .from("profiles")
         .select("*")
@@ -117,6 +133,21 @@ export default function UserPosts() {
         .maybeSingle();
         
       if (!profileData) {
+        // If no profile found by username and user is logged in, check if they own posts
+        if (session?.user) {
+          const { data: ownProfile } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", session.user.id)
+            .maybeSingle();
+          
+          if (ownProfile) {
+            setProfile(ownProfile);
+            setIsOwner(true);
+            await fetchPosts(session.user.id);
+            return;
+          }
+        }
         navigate("/");
         return;
       }
