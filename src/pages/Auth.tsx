@@ -134,16 +134,13 @@ export default function Auth() {
           </Button>
         </form>
 
-        <div className="mt-6 text-center">
-          <button
-            type="button"
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+        <div className="mt-6 text-center space-y-2">
+          <Link
+            to="/register"
+            className="block text-sm text-foreground hover:underline"
           >
-            {isLogin 
-              ? "Don't have an account? Sign up" 
-              : "Already have an account? Sign in"}
-          </button>
+            Don't have an account? Sign up
+          </Link>
         </div>
       </div>
     </div>
