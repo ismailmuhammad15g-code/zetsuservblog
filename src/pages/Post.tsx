@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { ShareButtons } from "@/components/ShareButtons";
+import { PostLikes } from "@/components/PostLikes";
+import { PostComments } from "@/components/PostComments";
 import { ArrowLeft, Loader2, Calendar, User, ImageOff } from "lucide-react";
 import { format } from "date-fns";
 import { useState } from "react";
@@ -110,7 +112,17 @@ export default function Post() {
           <MarkdownRenderer content={post.content} />
         </div>
 
-        <div className="mt-12 pt-8 border-t border-border flex items-center justify-between">
+        {/* Likes and Comments Section */}
+        <div className="mt-10 pt-8 border-t border-border space-y-6">
+          <div className="flex items-center gap-4">
+            <PostLikes postId={post.id} />
+            <ShareButtons title={post.title} />
+          </div>
+          
+          <PostComments postId={post.id} />
+        </div>
+
+        <div className="mt-8 pt-8 border-t border-border flex items-center justify-between">
           <Link 
             to="/" 
             className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -118,7 +130,6 @@ export default function Post() {
             <ArrowLeft className="h-4 w-4" />
             More posts
           </Link>
-          <ShareButtons title={post.title} />
         </div>
       </article>
     </Layout>

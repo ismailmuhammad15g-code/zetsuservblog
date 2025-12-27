@@ -1,8 +1,10 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, User, LogOut, LayoutDashboard } from "lucide-react";
+import { Menu, X, User, LogOut, LayoutDashboard, Settings, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,10 +14,17 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 
+interface Profile {
+  avatar_url: string | null;
+  full_name: string | null;
+  username: string | null;
+}
+
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -28,9 +37,11 @@ export function Navbar() {
         if (session?.user) {
           setTimeout(() => {
             checkAdminRole(session.user.id);
+            fetchProfile(session.user.id);
           }, 0);
         } else {
           setIsAdmin(false);
+          setProfile(null);
         }
       }
     );
@@ -39,6 +50,7 @@ export function Navbar() {
       setUser(session?.user ?? null);
       if (session?.user) {
         checkAdminRole(session.user.id);
+        fetchProfile(session.user.id);
       }
     });
 
@@ -54,10 +66,21 @@ export function Navbar() {
     setIsAdmin(data?.some(r => r.role === "admin") ?? false);
   };
 
+  const fetchProfile = async (userId: string) => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("avatar_url, full_name, username")
+      .eq("id", userId)
+      .maybeSingle();
+    
+    setProfile(data);
+  };
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     setUser(null);
     setIsAdmin(false);
+    setProfile(null);
     navigate("/");
   };
 
@@ -93,11 +116,22 @@ export function Navbar() {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 gap-2">
-                  <User className="h-4 w-4" />
+                <Button variant="ghost" size="sm" className="h-9 gap-2 px-2">
+                  <Avatar className="h-7 w-7">
+                    <AvatarImage src={profile?.avatar_url || ""} />
+                    <AvatarFallback className="text-xs">
+                      {profile?.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
                   <span className="max-w-[100px] truncate text-xs">
-                    {user.email?.split("@")[0]}
+                    {profile?.full_name || user.email?.split("@")[0]}
                   </span>
+                  {isAdmin && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 gap-1">
+                      <Shield className="h-2.5 w-2.5" />
+                      Admin
+                    </Badge>
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -112,6 +146,13 @@ export function Navbar() {
                     <DropdownMenuSeparator />
                   </>
                 )}
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
+                    <Settings className="h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   onClick={handleLogout}
                   className="flex items-center gap-2 cursor-pointer text-destructive"
@@ -165,6 +206,23 @@ export function Navbar() {
             
             {user ? (
               <>
+                <div className="flex items-center gap-3 py-2 border-t border-border pt-4">
+                  <Avatar className="h-10 w-10">
+                    <AvatarImage src={profile?.avatar_url || ""} />
+                    <AvatarFallback>
+                      {profile?.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <p className="font-medium text-sm">{profile?.full_name || user.email?.split("@")[0]}</p>
+                    {isAdmin && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 gap-1">
+                        <Shield className="h-2.5 w-2.5" />
+                        Admin
+                      </Badge>
+                    )}
+                  </div>
+                </div>
                 {isAdmin && (
                   <Link 
                     to="/admin" 
@@ -175,6 +233,14 @@ export function Navbar() {
                     Dashboard
                   </Link>
                 )}
+                <Link 
+                  to="/settings" 
+                  onClick={() => setIsOpen(false)}
+                  className="text-sm py-2 flex items-center gap-2"
+                >
+                  <Settings className="h-4 w-4" />
+                  Settings
+                </Link>
                 <button
                   onClick={() => {
                     handleLogout();
