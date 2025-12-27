@@ -71,6 +71,13 @@ export default function Admin() {
         .eq("user_id", session.user.id);
 
       const hasAdminRole = roles?.some(r => r.role === "admin") ?? false;
+      
+      if (!hasAdminRole) {
+        // Redirect non-admin users to homepage
+        navigate("/");
+        return;
+      }
+      
       setIsAdmin(hasAdminRole);
       setCheckingAuth(false);
     };
