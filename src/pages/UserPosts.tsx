@@ -349,7 +349,7 @@ export default function UserPosts() {
               <div className="flex-1">
                 <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
                   <h1 className="text-2xl md:text-3xl font-bold">
-                    {profile?.full_name || username}'s Posts
+                    {profile?.full_name || profile?.username || username}'s Posts
                   </h1>
                   {isOwner && (
                     <Badge variant="secondary" className="w-fit gap-1">
@@ -358,7 +358,7 @@ export default function UserPosts() {
                     </Badge>
                   )}
                 </div>
-                <p className="text-muted-foreground mb-4">@{username}</p>
+                <p className="text-muted-foreground mb-4">@{profile?.username ?? username}</p>
                 
                 {/* Stats */}
                 <div className="flex flex-wrap gap-4 md:gap-6">

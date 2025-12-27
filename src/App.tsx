@@ -29,7 +29,12 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/settings" element={<Settings />} />
+
+          {/* User posts (canonical + legacy aliases) */}
           <Route path="/:username/post" element={<UserPosts />} />
+          <Route path="/user/:username" element={<UserPosts />} />
+          <Route path="/user/:username/post" element={<UserPosts />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -29,6 +29,7 @@ export function Navbar() {
   const navigate = useNavigate();
 
   const isActive = (path: string) => location.pathname === path;
+  const myPostsPath = profile?.username ? `/${profile.username}/post` : "/me/post";
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -147,7 +148,7 @@ export function Navbar() {
                   </>
                 )}
                 <DropdownMenuItem asChild>
-                  <Link to="/user/me" className="flex items-center gap-2 cursor-pointer">
+                  <Link to={myPostsPath} className="flex items-center gap-2 cursor-pointer">
                     <FileText className="h-4 w-4" />
                     My Posts
                   </Link>
@@ -240,7 +241,7 @@ export function Navbar() {
                   </Link>
                 )}
                 <Link 
-                  to="/user/me" 
+                  to={myPostsPath}
                   onClick={() => setIsOpen(false)}
                   className="text-sm py-2 flex items-center gap-2"
                 >
