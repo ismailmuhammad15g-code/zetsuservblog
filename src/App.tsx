@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Post from "./pages/Post";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
+import Register from "./pages/Register";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/post/:slug" element={<Post />} />
           <Route path="/about" element={<About />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/register" element={<Register />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
