@@ -3,11 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
-import { ArrowLeft, Loader2, Calendar, User } from "lucide-react";
+import { ShareButtons } from "@/components/ShareButtons";
+import { ArrowLeft, Loader2, Calendar, User, ImageOff } from "lucide-react";
 import { format } from "date-fns";
+import { useState } from "react";
 
 export default function Post() {
   const { slug } = useParams<{ slug: string }>();
+  const [imageError, setImageError] = useState(false);
 
   const { data: post, isLoading, error } = useQuery({
     queryKey: ["post", slug],
@@ -58,13 +61,16 @@ export default function Post() {
   return (
     <Layout>
       <article className="container py-12 md:py-20 max-w-3xl animate-fade-in">
-        <Link 
-          to="/" 
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to blog
-        </Link>
+        <div className="flex items-center justify-between mb-8">
+          <Link 
+            to="/" 
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to blog
+          </Link>
+          <ShareButtons title={post.title} />
+        </div>
 
         <header className="mb-10">
           <h1 className="text-3xl md:text-4xl font-semibold tracking-tight mb-6 text-balance">
@@ -85,18 +91,34 @@ export default function Post() {
           </div>
         </header>
 
-        {post.cover_image && (
-          <div className="mb-10 rounded-lg overflow-hidden">
+        {post.cover_image && !imageError ? (
+          <div className="mb-10 rounded-lg overflow-hidden bg-muted">
             <img 
               src={post.cover_image} 
               alt={post.title}
               className="w-full h-auto"
+              onError={() => setImageError(true)}
             />
           </div>
-        )}
+        ) : post.cover_image && imageError ? (
+          <div className="mb-10 rounded-lg overflow-hidden bg-muted h-64 flex items-center justify-center">
+            <ImageOff className="h-12 w-12 text-muted-foreground/50" />
+          </div>
+        ) : null}
 
         <div className="text-base leading-relaxed">
           <MarkdownRenderer content={post.content} />
+        </div>
+
+        <div className="mt-12 pt-8 border-t border-border flex items-center justify-between">
+          <Link 
+            to="/" 
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            More posts
+          </Link>
+          <ShareButtons title={post.title} />
         </div>
       </article>
     </Layout>
