@@ -9,14 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Loader2, FileText, Sparkles } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import type { User } from "@supabase/supabase-js";
 
 interface Profile {
@@ -36,7 +28,6 @@ export default function Settings() {
   const [uploading, setUploading] = useState(false);
   const [fullName, setFullName] = useState("");
   const [username, setUsername] = useState("");
-  const [showStartPosting, setShowStartPosting] = useState(false);
   const [creatingDashboard, setCreatingDashboard] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
   const navigate = useNavigate();
@@ -138,7 +129,6 @@ export default function Settings() {
       toast({ title: "Please set a username first", variant: "destructive" });
       return;
     }
-    setShowStartPosting(false);
     setCreatingDashboard(true);
 
     const steps = [
@@ -310,41 +300,12 @@ export default function Settings() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button 
-              onClick={() => {
-                if (!username) {
-                  toast({ title: "Please set a username first", variant: "destructive" });
-                  return;
-                }
-                setShowStartPosting(true);
-              }}
-              className="w-full gap-2"
-            >
+            <Button onClick={handleStartPosting} className="w-full gap-2">
               <Sparkles className="h-4 w-4" />
               Start Posting 📜
             </Button>
           </CardContent>
         </Card>
-
-        {/* Confirmation Dialog */}
-        <Dialog open={showStartPosting} onOpenChange={setShowStartPosting}>
-          <DialogContent className="mx-4 max-w-[calc(100vw-2rem)] sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Ready to start posting?</DialogTitle>
-              <DialogDescription>
-                You're about to unlock your personal blog space where you can create and share your posts with the community.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-0">
-              <Button variant="outline" onClick={() => setShowStartPosting(false)} className="w-full sm:w-auto">
-                Not yet
-              </Button>
-              <Button onClick={handleStartPosting} className="w-full sm:w-auto">
-                Yes, let's go! 🚀
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
       </div>
     </Layout>
   );
