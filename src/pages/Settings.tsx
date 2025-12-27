@@ -181,18 +181,18 @@ export default function Settings() {
   if (creatingDashboard) {
     return (
       <Layout>
-        <div className="container py-20 flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
-          <div className="relative mb-8">
-            <div className="w-20 h-20 rounded-full bg-gradient-to-r from-primary to-primary/50 animate-pulse" />
-            <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 text-primary-foreground animate-bounce" />
+        <div className="container px-4 py-16 md:py-20 flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
+          <div className="relative mb-6 md:mb-8">
+            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-r from-primary to-primary/50 animate-pulse" />
+            <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 md:h-10 md:w-10 text-primary-foreground animate-bounce" />
           </div>
-          <h2 className="text-2xl font-semibold mb-4 text-center">{loadingStep}</h2>
-          <p className="text-muted-foreground text-center">Please wait...</p>
-          <div className="mt-8 flex gap-1">
+          <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-center px-4">{loadingStep}</h2>
+          <p className="text-sm md:text-base text-muted-foreground text-center">Please wait...</p>
+          <div className="mt-6 md:mt-8 flex gap-1.5">
             {[0, 1, 2].map(i => (
               <div 
                 key={i} 
-                className="w-3 h-3 rounded-full bg-primary animate-bounce"
+                className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-primary animate-bounce"
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
@@ -204,30 +204,30 @@ export default function Settings() {
 
   return (
     <Layout>
-      <div className="container py-12 max-w-2xl animate-fade-in">
-        <h1 className="text-3xl font-semibold mb-8">Settings</h1>
+      <div className="container py-8 md:py-12 px-4 md:px-6 max-w-2xl animate-fade-in">
+        <h1 className="text-2xl md:text-3xl font-semibold mb-6 md:mb-8">Settings</h1>
 
         {/* Profile Card */}
         <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Profile</CardTitle>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg md:text-xl">Profile</CardTitle>
             <CardDescription>Update your personal information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Avatar Upload */}
-            <div className="flex items-center gap-6">
+            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <div className="relative group">
-                <Avatar className="h-24 w-24 border-2 border-border">
+                <Avatar className="h-20 w-20 md:h-24 md:w-24 border-2 border-border">
                   <AvatarImage src={profile?.avatar_url || ""} />
-                  <AvatarFallback className="text-2xl">
+                  <AvatarFallback className="text-xl md:text-2xl">
                     {fullName?.charAt(0)?.toUpperCase() || user?.email?.charAt(0)?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <label className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                   {uploading ? (
-                    <Loader2 className="h-6 w-6 animate-spin" />
+                    <Loader2 className="h-5 w-5 md:h-6 md:w-6 animate-spin" />
                   ) : (
-                    <Camera className="h-6 w-6" />
+                    <Camera className="h-5 w-5 md:h-6 md:w-6" />
                   )}
                   <input
                     type="file"
@@ -238,9 +238,9 @@ export default function Settings() {
                   />
                 </label>
               </div>
-              <div>
+              <div className="text-center sm:text-left">
                 <p className="font-medium">{fullName || "No name set"}</p>
-                <p className="text-sm text-muted-foreground">{user?.email}</p>
+                <p className="text-sm text-muted-foreground break-all">{user?.email}</p>
               </div>
             </div>
 
@@ -269,7 +269,7 @@ export default function Settings() {
                 />
               </div>
 
-              <Button onClick={handleSaveProfile} disabled={saving}>
+              <Button onClick={handleSaveProfile} disabled={saving} className="w-full sm:w-auto">
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Save Changes
               </Button>
@@ -279,8 +279,8 @@ export default function Settings() {
 
         {/* Start Posting Card */}
         <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
               <FileText className="h-5 w-5 text-primary" />
               Start Posting
             </CardTitle>
@@ -307,18 +307,18 @@ export default function Settings() {
 
         {/* Confirmation Dialog */}
         <Dialog open={showStartPosting} onOpenChange={setShowStartPosting}>
-          <DialogContent>
+          <DialogContent className="mx-4 max-w-[calc(100vw-2rem)] sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Ready to start posting?</DialogTitle>
               <DialogDescription>
                 You're about to unlock your personal blog space where you can create and share your posts with the community.
               </DialogDescription>
             </DialogHeader>
-            <DialogFooter className="gap-2 sm:gap-0">
-              <Button variant="outline" onClick={() => setShowStartPosting(false)}>
+            <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-0">
+              <Button variant="outline" onClick={() => setShowStartPosting(false)} className="w-full sm:w-auto">
                 Not yet
               </Button>
-              <Button onClick={handleStartPosting}>
+              <Button onClick={handleStartPosting} className="w-full sm:w-auto">
                 Yes, let's go! 🚀
               </Button>
             </DialogFooter>
