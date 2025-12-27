@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, User, LogOut, LayoutDashboard, Settings, Shield } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Settings, Shield, FileText } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -147,6 +147,12 @@ export function Navbar() {
                   </>
                 )}
                 <DropdownMenuItem asChild>
+                  <Link to="/user/me" className="flex items-center gap-2 cursor-pointer">
+                    <FileText className="h-4 w-4" />
+                    My Posts
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
                     <Settings className="h-4 w-4" />
                     Settings
@@ -233,6 +239,14 @@ export function Navbar() {
                     Dashboard
                   </Link>
                 )}
+                <Link 
+                  to="/user/me" 
+                  onClick={() => setIsOpen(false)}
+                  className="text-sm py-2 flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  My Posts
+                </Link>
                 <Link 
                   to="/settings" 
                   onClick={() => setIsOpen(false)}
