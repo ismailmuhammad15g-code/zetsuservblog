@@ -180,25 +180,46 @@ export default function Settings() {
 
   if (creatingDashboard) {
     return (
-      <Layout>
-        <div className="container px-4 py-16 md:py-20 flex flex-col items-center justify-center min-h-[60vh] animate-fade-in">
-          <div className="relative mb-6 md:mb-8">
-            <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gradient-to-r from-primary to-primary/50 animate-pulse" />
-            <Sparkles className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-8 w-8 md:h-10 md:w-10 text-primary-foreground animate-bounce" />
+      <div className="fixed inset-0 z-50 bg-background flex flex-col items-center justify-center px-6">
+        {/* Animated background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-primary/5 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "0.5s" }} />
+        </div>
+        
+        {/* Content */}
+        <div className="relative z-10 flex flex-col items-center">
+          {/* Logo animation */}
+          <div className="relative mb-8">
+            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary via-primary/80 to-primary/50 flex items-center justify-center shadow-lg shadow-primary/20">
+              <Sparkles className="h-12 w-12 text-primary-foreground animate-pulse" />
+            </div>
+            <div className="absolute -inset-2 rounded-full border-2 border-primary/30 animate-ping" style={{ animationDuration: "2s" }} />
           </div>
-          <h2 className="text-xl md:text-2xl font-semibold mb-3 md:mb-4 text-center px-4">{loadingStep}</h2>
-          <p className="text-sm md:text-base text-muted-foreground text-center">Please wait...</p>
-          <div className="mt-6 md:mt-8 flex gap-1.5">
+          
+          {/* Text */}
+          <h2 className="text-2xl md:text-3xl font-bold mb-3 text-center bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+            {loadingStep}
+          </h2>
+          <p className="text-muted-foreground text-center mb-8">Please wait...</p>
+          
+          {/* Loading dots */}
+          <div className="flex gap-2">
             {[0, 1, 2].map(i => (
               <div 
                 key={i} 
-                className="w-2.5 h-2.5 md:w-3 md:h-3 rounded-full bg-primary animate-bounce"
+                className="w-3 h-3 rounded-full bg-primary animate-bounce shadow-sm shadow-primary/50"
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
           </div>
+          
+          {/* Progress bar */}
+          <div className="mt-8 w-48 h-1 bg-muted rounded-full overflow-hidden">
+            <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: "60%" }} />
+          </div>
         </div>
-      </Layout>
+      </div>
     );
   }
 
