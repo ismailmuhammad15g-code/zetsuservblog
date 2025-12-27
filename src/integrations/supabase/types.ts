@@ -14,6 +14,70 @@ export type Database = {
   }
   public: {
     Tables: {
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       otp_codes: {
         Row: {
           code: string
@@ -53,6 +117,7 @@ export type Database = {
           slug: string
           title: string
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           author_name?: string
@@ -65,6 +130,7 @@ export type Database = {
           slug: string
           title: string
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           author_name?: string
@@ -77,27 +143,37 @@ export type Database = {
           slug?: string
           title?: string
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
       profiles: {
         Row: {
+          avatar_url: string | null
           created_at: string
           email: string | null
           full_name: string | null
           id: string
+          is_creator: boolean | null
+          username: string | null
         }
         Insert: {
+          avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id: string
+          is_creator?: boolean | null
+          username?: string | null
         }
         Update: {
+          avatar_url?: string | null
           created_at?: string
           email?: string | null
           full_name?: string | null
           id?: string
+          is_creator?: boolean | null
+          username?: string | null
         }
         Relationships: []
       }
