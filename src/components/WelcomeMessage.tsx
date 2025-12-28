@@ -59,11 +59,15 @@ export function WelcomeMessage() {
 
   const handlePrimaryAction = () => {
     sessionStorage.setItem("welcomeMessageShown", "true");
-    if (userStatus === "authenticated") {
-      navigate("/contact");
-    } else {
-      navigate("/auth");
-    }
+    setIsExpanded(false);
+    setTimeout(() => {
+      setIsVisible(false);
+      if (userStatus === "authenticated") {
+        navigate("/contact");
+      } else {
+        navigate("/auth");
+      }
+    }, 300);
   };
 
   const handleBubbleClick = () => {
