@@ -209,6 +209,7 @@ export default function Index() {
                       userId={post.user_id}
                       category={post.categories}
                       isPinned={true}
+                      viewsCount={post.views_count}
                     />
                   ))}
                 </div>
@@ -241,6 +242,7 @@ export default function Index() {
                       coverImage={post.cover_image}
                       userId={post.user_id}
                       category={post.categories}
+                      viewsCount={post.views_count}
                     />
                   ))}
                 </div>
@@ -290,6 +292,7 @@ export default function Index() {
                       coverImage={post.cover_image}
                       userId={post.user_id}
                       category={post.categories}
+                      viewsCount={post.views_count}
                     />
                   ))}
                   {filteredCommunityPosts.length > 5 && (

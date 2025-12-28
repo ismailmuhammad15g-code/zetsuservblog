@@ -8,7 +8,8 @@ import { PostLikes } from "@/components/PostLikes";
 import { PostComments } from "@/components/PostComments";
 import { BookmarkButton } from "@/components/BookmarkButton";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import { ArrowLeft, Loader2, Calendar, User, ImageOff } from "lucide-react";
+import { usePostViews } from "@/hooks/usePostViews";
+import { ArrowLeft, Loader2, Calendar, User, ImageOff, Eye } from "lucide-react";
 import { format } from "date-fns";
 import { useState, useEffect } from "react";
 
@@ -32,6 +33,8 @@ export default function Post() {
     },
     enabled: !!slug,
   });
+
+  const viewsCount = usePostViews(post?.id || "");
 
   useEffect(() => {
     if (post?.user_id) {
@@ -110,6 +113,10 @@ export default function Post() {
               <time dateTime={post.created_at}>
                 {format(new Date(post.created_at), "MMMM d, yyyy")}
               </time>
+            </div>
+            <div className="flex items-center gap-2">
+              <Eye className="h-4 w-4" />
+              <span>{viewsCount} views</span>
             </div>
           </div>
         </header>
