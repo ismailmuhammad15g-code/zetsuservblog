@@ -13,6 +13,7 @@ import Settings from "./pages/Settings";
 import UserPosts from "./pages/UserPosts";
 import Contact from "./pages/Contact";
 import Bookmarks from "./pages/Bookmarks";
+import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
 import { WelcomeMessage } from "./components/WelcomeMessage";
 
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="/settings" element={<Settings />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/bookmarks" element={<Bookmarks />} />
+          <Route path="/community" element={<Community />} />
 
           {/* User posts (canonical + legacy aliases) */}
           <Route path="/:username/post" element={<UserPosts />} />

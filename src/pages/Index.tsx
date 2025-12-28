@@ -1,10 +1,11 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { PostCard } from "@/components/PostCard";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
-import { Loader2, TrendingUp, Clock, Sparkles } from "lucide-react";
+import { Loader2, TrendingUp, Clock, Sparkles, Crown, Users, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type SortOption = "latest" | "popular" | "trending";
@@ -27,6 +28,20 @@ export default function Index() {
     },
   });
 
+  // Fetch admin user IDs
+  const { data: adminIds = [] } = useQuery({
+    queryKey: ["admin-ids"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+
+      if (error) throw error;
+      return data.map(r => r.user_id);
+    },
+  });
+
   const { data: posts, isLoading, error } = useQuery({
     queryKey: ["posts"],
     queryFn: async () => {
@@ -41,10 +56,21 @@ export default function Index() {
     },
   });
 
-  const filteredPosts = useMemo(() => {
-    if (!posts) return [];
+  // Separate admin posts from community posts
+  const { adminPosts, communityPosts } = useMemo(() => {
+    if (!posts) return { adminPosts: [], communityPosts: [] };
+    
+    const admins = posts.filter(post => post.user_id && adminIds.includes(post.user_id));
+    const community = posts.filter(post => !post.user_id || !adminIds.includes(post.user_id));
+    
+    return { adminPosts: admins, communityPosts: community };
+  }, [posts, adminIds]);
 
-    let result = [...posts];
+  // Filter and sort function
+  const filterAndSort = (postsToFilter: typeof posts) => {
+    if (!postsToFilter) return [];
+
+    let result = [...postsToFilter];
 
     // Filter by search query
     if (searchQuery) {
@@ -66,11 +92,9 @@ export default function Index() {
     // Sort
     switch (sortBy) {
       case "popular":
-        // For now, we'll sort by created_at as we don't have view counts
         result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
         break;
       case "trending":
-        // Sort by most recent
         result.sort((a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime());
         break;
       case "latest":
@@ -79,7 +103,10 @@ export default function Index() {
     }
 
     return result;
-  }, [posts, searchQuery, selectedCategory, sortBy]);
+  };
+
+  const filteredAdminPosts = useMemo(() => filterAndSort(adminPosts), [adminPosts, searchQuery, selectedCategory, sortBy]);
+  const filteredCommunityPosts = useMemo(() => filterAndSort(communityPosts), [communityPosts, searchQuery, selectedCategory, sortBy]);
 
   return (
     <Layout>
@@ -132,47 +159,121 @@ export default function Index() {
           </Button>
         </div>
 
-        <section>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-20">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : error ? (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground">Failed to load posts.</p>
-            </div>
-          ) : filteredPosts && filteredPosts.length > 0 ? (
-            <div className="animate-slide-up">
-              {filteredPosts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  id={post.id}
-                  title={post.title}
-                  excerpt={post.excerpt}
-                  slug={post.slug}
-                  authorName={post.author_name}
-                  createdAt={post.created_at}
-                  coverImage={post.cover_image}
-                  userId={post.user_id}
-                  category={post.categories}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-20 border border-dashed border-border rounded-lg">
-              <p className="text-muted-foreground">
-                {searchQuery || selectedCategory
-                  ? "No posts match your search criteria."
-                  : "No posts published yet."}
-              </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                {searchQuery || selectedCategory
-                  ? "Try adjusting your filters."
-                  : "Check back soon for new content."}
-              </p>
-            </div>
-          )}
-        </section>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <p className="text-muted-foreground">Failed to load posts.</p>
+          </div>
+        ) : (
+          <>
+            {/* Official Posts Section - Always at Top */}
+            <section className="mb-16">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30">
+                  <Crown className="h-5 w-5 text-amber-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold tracking-tight">Official Posts</h2>
+                  <p className="text-sm text-muted-foreground">Important updates and announcements from the team</p>
+                </div>
+              </div>
+
+              {filteredAdminPosts.length > 0 ? (
+                <div className="animate-slide-up rounded-xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-transparent p-4">
+                  {filteredAdminPosts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      id={post.id}
+                      title={post.title}
+                      excerpt={post.excerpt}
+                      slug={post.slug}
+                      authorName={post.author_name}
+                      createdAt={post.created_at}
+                      coverImage={post.cover_image}
+                      userId={post.user_id}
+                      category={post.categories}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 border border-dashed border-amber-500/30 rounded-lg bg-amber-500/5">
+                  <Crown className="h-10 w-10 mx-auto text-amber-500/30 mb-3" />
+                  <p className="text-muted-foreground">
+                    {searchQuery || selectedCategory
+                      ? "No official posts match your criteria."
+                      : "No official posts yet."}
+                  </p>
+                </div>
+              )}
+            </section>
+
+            {/* Community Posts Section */}
+            <section>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20">
+                    <Users className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold tracking-tight">Community Posts</h2>
+                    <p className="text-sm text-muted-foreground">Discover content from our amazing community</p>
+                  </div>
+                </div>
+                <Link to="/community">
+                  <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
+                    View All
+                    <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </Link>
+              </div>
+
+              {filteredCommunityPosts.length > 0 ? (
+                <div className="animate-slide-up">
+                  {filteredCommunityPosts.slice(0, 5).map((post) => (
+                    <PostCard
+                      key={post.id}
+                      id={post.id}
+                      title={post.title}
+                      excerpt={post.excerpt}
+                      slug={post.slug}
+                      authorName={post.author_name}
+                      createdAt={post.created_at}
+                      coverImage={post.cover_image}
+                      userId={post.user_id}
+                      category={post.categories}
+                    />
+                  ))}
+                  {filteredCommunityPosts.length > 5 && (
+                    <div className="text-center pt-6">
+                      <Link to="/community">
+                        <Button variant="outline" className="gap-2">
+                          <Users className="h-4 w-4" />
+                          View All {filteredCommunityPosts.length} Community Posts
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-12 border border-dashed border-border rounded-lg">
+                  <Users className="h-10 w-10 mx-auto text-muted-foreground/30 mb-3" />
+                  <p className="text-muted-foreground">
+                    {searchQuery || selectedCategory
+                      ? "No community posts match your criteria."
+                      : "No community posts yet."}
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Be the first to share your thoughts!
+                  </p>
+                </div>
+              )}
+            </section>
+          </>
+        )}
       </div>
     </Layout>
   );
