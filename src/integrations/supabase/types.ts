@@ -277,6 +277,38 @@ export type Database = {
         }
         Relationships: []
       }
+      post_views: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          session_id: string
+          viewer_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          session_id: string
+          viewer_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          session_id?: string
+          viewer_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_views_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_name: string
@@ -289,10 +321,12 @@ export type Database = {
           is_pinned: boolean
           pinned_at: string | null
           published: boolean
+          scheduled_at: string | null
           slug: string
           title: string
           updated_at: string
           user_id: string | null
+          views_count: number
         }
         Insert: {
           author_name?: string
@@ -305,10 +339,12 @@ export type Database = {
           is_pinned?: boolean
           pinned_at?: string | null
           published?: boolean
+          scheduled_at?: string | null
           slug: string
           title: string
           updated_at?: string
           user_id?: string | null
+          views_count?: number
         }
         Update: {
           author_name?: string
@@ -321,10 +357,12 @@ export type Database = {
           is_pinned?: boolean
           pinned_at?: string | null
           published?: boolean
+          scheduled_at?: string | null
           slug?: string
           title?: string
           updated_at?: string
           user_id?: string | null
+          views_count?: number
         }
         Relationships: [
           {

@@ -178,6 +178,7 @@ export default function Community() {
                   coverImage={post.cover_image}
                   userId={post.user_id}
                   category={post.categories}
+                  viewsCount={post.views_count}
                 />
               ))}
             </div>

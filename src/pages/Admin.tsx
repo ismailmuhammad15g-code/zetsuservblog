@@ -24,7 +24,9 @@ import {
   Megaphone,
   Tags,
   Pin,
-  PinOff
+  PinOff,
+  Clock,
+  CalendarClock
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
@@ -42,6 +44,8 @@ interface Post {
   updated_at: string;
   is_pinned: boolean;
   pinned_at: string | null;
+  scheduled_at: string | null;
+  views_count: number;
 }
 
 export default function Admin() {
@@ -57,6 +61,7 @@ export default function Admin() {
     content: "",
     cover_image: "",
     published: false,
+    scheduled_at: "",
   });
 
   const navigate = useNavigate();
@@ -122,6 +127,8 @@ export default function Admin() {
 
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData & { id?: string }) => {
+      const scheduledAt = data.scheduled_at ? new Date(data.scheduled_at).toISOString() : null;
+      
       if (data.id) {
         const { error } = await supabase
           .from("posts")
@@ -131,7 +138,8 @@ export default function Admin() {
             excerpt: data.excerpt || null,
             content: data.content,
             cover_image: data.cover_image || null,
-            published: data.published,
+            published: scheduledAt ? false : data.published,
+            scheduled_at: scheduledAt,
           })
           .eq("id", data.id);
 
@@ -143,7 +151,8 @@ export default function Admin() {
           excerpt: data.excerpt || null,
           content: data.content,
           cover_image: data.cover_image || null,
-          published: data.published,
+          published: scheduledAt ? false : data.published,
+          scheduled_at: scheduledAt,
         });
 
         if (error) throw error;
@@ -224,6 +233,7 @@ export default function Admin() {
       content: "",
       cover_image: "",
       published: false,
+      scheduled_at: "",
     });
     setEditingPost(null);
     setShowEditor(false);
@@ -238,6 +248,7 @@ export default function Admin() {
       content: post.content,
       cover_image: post.cover_image || "",
       published: post.published,
+      scheduled_at: post.scheduled_at ? new Date(post.scheduled_at).toISOString().slice(0, 16) : "",
     });
     setShowEditor(true);
   };
@@ -404,6 +415,25 @@ export default function Admin() {
                     />
                   </div>
 
+                  <div className="space-y-2">
+                    <Label htmlFor="scheduled_at" className="flex items-center gap-2">
+                      <CalendarClock className="h-4 w-4" />
+                      Schedule Post (Optional)
+                    </Label>
+                    <Input
+                      id="scheduled_at"
+                      type="datetime-local"
+                      value={formData.scheduled_at}
+                      onChange={(e) => setFormData({ ...formData, scheduled_at: e.target.value })}
+                      min={new Date().toISOString().slice(0, 16)}
+                    />
+                    {formData.scheduled_at && (
+                      <p className="text-xs text-muted-foreground">
+                        Post will be published automatically at this time. Published toggle will be ignored if scheduled.
+                      </p>
+                    )}
+                  </div>
+
                   <div className="flex items-center gap-2">
                     <Switch
                       id="published"
@@ -411,8 +441,11 @@ export default function Admin() {
                       onCheckedChange={(checked) => 
                         setFormData({ ...formData, published: checked })
                       }
+                      disabled={!!formData.scheduled_at}
                     />
-                    <Label htmlFor="published">Published</Label>
+                    <Label htmlFor="published" className={formData.scheduled_at ? "text-muted-foreground" : ""}>
+                      Published {formData.scheduled_at && "(Disabled - Scheduled)"}
+                    </Label>
                   </div>
 
                   <div className="flex gap-4">
@@ -449,7 +482,7 @@ export default function Admin() {
                         <tr>
                           <th className="text-left text-sm font-medium px-4 py-3">Title</th>
                           <th className="text-left text-sm font-medium px-4 py-3 hidden md:table-cell">Status</th>
-                          <th className="text-left text-sm font-medium px-4 py-3 hidden lg:table-cell">Pinned</th>
+                          <th className="text-left text-sm font-medium px-4 py-3 hidden lg:table-cell">Views</th>
                           <th className="text-left text-sm font-medium px-4 py-3 hidden sm:table-cell">Date</th>
                           <th className="text-right text-sm font-medium px-4 py-3">Actions</th>
                         </tr>
@@ -466,21 +499,33 @@ export default function Admin() {
                               </div>
                             </td>
                             <td className="px-4 py-3 hidden md:table-cell">
-                              <span className={`text-xs px-2 py-1 rounded ${
-                                post.published 
-                                  ? "bg-primary/10 text-primary" 
-                                  : "bg-muted text-muted-foreground"
-                              }`}>
-                                {post.published ? "Published" : "Draft"}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                {post.scheduled_at && !post.published ? (
+                                  <span className="text-xs px-2 py-1 rounded bg-amber-500/10 text-amber-500 flex items-center gap-1">
+                                    <Clock className="h-3 w-3" />
+                                    Scheduled
+                                  </span>
+                                ) : (
+                                  <span className={`text-xs px-2 py-1 rounded ${
+                                    post.published 
+                                      ? "bg-primary/10 text-primary" 
+                                      : "bg-muted text-muted-foreground"
+                                  }`}>
+                                    {post.published ? "Published" : "Draft"}
+                                  </span>
+                                )}
+                                {post.is_pinned && (
+                                  <span className="text-xs px-2 py-1 rounded bg-rose-500/10 text-rose-500 flex items-center gap-1">
+                                    <Pin className="h-3 w-3" />
+                                    Pinned
+                                  </span>
+                                )}
+                              </div>
                             </td>
                             <td className="px-4 py-3 hidden lg:table-cell">
-                              <span className={`text-xs px-2 py-1 rounded ${
-                                post.is_pinned 
-                                  ? "bg-rose-500/10 text-rose-500" 
-                                  : "bg-muted text-muted-foreground"
-                              }`}>
-                                {post.is_pinned ? "Pinned" : "Not Pinned"}
+                              <span className="flex items-center gap-1 text-sm text-muted-foreground">
+                                <Eye className="h-4 w-4" />
+                                {post.views_count || 0}
                               </span>
                             </td>
                             <td className="px-4 py-3 text-sm text-muted-foreground hidden sm:table-cell">
