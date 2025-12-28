@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { ArrowUpRight, ImageOff } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { VerifiedBadge } from "./VerifiedBadge";
 
 interface PostCardProps {
   id: string;
@@ -11,6 +13,7 @@ interface PostCardProps {
   authorName: string;
   createdAt: string;
   coverImage?: string | null;
+  userId?: string | null;
 }
 
 export function PostCard({ 
@@ -19,9 +22,26 @@ export function PostCard({
   slug, 
   authorName, 
   createdAt,
-  coverImage 
+  coverImage,
+  userId
 }: PostCardProps) {
   const [imageError, setImageError] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (userId) {
+      checkAdminRole(userId);
+    }
+  }, [userId]);
+
+  const checkAdminRole = async (uid: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", uid);
+    
+    setIsAdmin(data?.some(r => r.role === "admin") ?? false);
+  };
 
   return (
     <article className="group py-6 border-b border-border last:border-0">
@@ -57,7 +77,10 @@ export function PostCard({
             )}
             
             <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <span>{authorName}</span>
+              <span className="flex items-center gap-1">
+                {authorName}
+                {isAdmin && <VerifiedBadge />}
+              </span>
               <span>·</span>
               <time dateTime={createdAt}>
                 {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}

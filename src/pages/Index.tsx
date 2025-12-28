@@ -42,7 +42,7 @@ export default function Index() {
               <p className="text-muted-foreground">Failed to load posts.</p>
             </div>
           ) : posts && posts.length > 0 ? (
-            <div className="animate-slide-up">
+          <div className="animate-slide-up">
               {posts.map((post) => (
                 <PostCard
                   key={post.id}
@@ -53,6 +53,7 @@ export default function Index() {
                   authorName={post.author_name}
                   createdAt={post.created_at}
                   coverImage={post.cover_image}
+                  userId={post.user_id}
                 />
               ))}
             </div>
