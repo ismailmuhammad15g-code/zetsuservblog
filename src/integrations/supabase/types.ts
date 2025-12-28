@@ -47,6 +47,33 @@ export type Database = {
         }
         Relationships: []
       }
+      categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       comments: {
         Row: {
           content: string
@@ -141,6 +168,7 @@ export type Database = {
       posts: {
         Row: {
           author_name: string
+          category_id: string | null
           content: string
           cover_image: string | null
           created_at: string
@@ -154,6 +182,7 @@ export type Database = {
         }
         Insert: {
           author_name?: string
+          category_id?: string | null
           content: string
           cover_image?: string | null
           created_at?: string
@@ -167,6 +196,7 @@ export type Database = {
         }
         Update: {
           author_name?: string
+          category_id?: string | null
           content?: string
           cover_image?: string | null
           created_at?: string
@@ -178,7 +208,15 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -207,6 +245,42 @@ export type Database = {
           id?: string
           is_creator?: boolean | null
           username?: string | null
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          company_type: string | null
+          content_preferences: string[] | null
+          created_at: string
+          id: string
+          interests: string[] | null
+          onboarding_completed: boolean | null
+          team_size: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          company_type?: string | null
+          content_preferences?: string[] | null
+          created_at?: string
+          id?: string
+          interests?: string[] | null
+          onboarding_completed?: boolean | null
+          team_size?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          company_type?: string | null
+          content_preferences?: string[] | null
+          created_at?: string
+          id?: string
+          interests?: string[] | null
+          onboarding_completed?: boolean | null
+          team_size?: string | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

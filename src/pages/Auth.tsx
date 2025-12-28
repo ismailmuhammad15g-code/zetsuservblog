@@ -7,27 +7,53 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
+import { OnboardingSurvey } from "@/components/OnboardingSurvey";
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [newUserId, setNewUserId] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (session) {
-          navigate("/");
+      async (event, session) => {
+        if (session && event === "SIGNED_IN") {
+          // Check if user has completed onboarding
+          const { data: preferences } = await supabase
+            .from("user_preferences")
+            .select("onboarding_completed")
+            .eq("user_id", session.user.id)
+            .maybeSingle();
+
+          if (!preferences || !preferences.onboarding_completed) {
+            setNewUserId(session.user.id);
+            setShowOnboarding(true);
+          } else {
+            navigate("/");
+          }
         }
       }
     );
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session) {
-        navigate("/");
+        const { data: preferences } = await supabase
+          .from("user_preferences")
+          .select("onboarding_completed")
+          .eq("user_id", session.user.id)
+          .maybeSingle();
+
+        if (!preferences || !preferences.onboarding_completed) {
+          setNewUserId(session.user.id);
+          setShowOnboarding(true);
+        } else {
+          navigate("/");
+        }
       }
     });
 
@@ -52,7 +78,7 @@ export default function Auth() {
           description: "You've successfully signed in.",
         });
       } else {
-        const { error } = await supabase.auth.signUp({
+        const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -62,9 +88,14 @@ export default function Auth() {
 
         if (error) throw error;
 
+        if (data.user) {
+          setNewUserId(data.user.id);
+          setShowOnboarding(true);
+        }
+
         toast({
           title: "Account created",
-          description: "Check your email to verify your account.",
+          description: "Let's set up your preferences!",
         });
       }
     } catch (error: any) {
@@ -77,6 +108,15 @@ export default function Auth() {
       setIsLoading(false);
     }
   };
+
+  if (showOnboarding && newUserId) {
+    return (
+      <OnboardingSurvey
+        userId={newUserId}
+        onComplete={() => navigate("/")}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-4">
@@ -135,12 +175,13 @@ export default function Auth() {
         </form>
 
         <div className="mt-6 text-center space-y-2">
-          <Link
-            to="/register"
-            className="block text-sm text-foreground hover:underline"
+          <button
+            type="button"
+            onClick={() => setIsLogin(!isLogin)}
+            className="block w-full text-sm text-foreground hover:underline"
           >
-            Don't have an account? Sign up
-          </Link>
+            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
+          </button>
         </div>
       </div>
     </div>

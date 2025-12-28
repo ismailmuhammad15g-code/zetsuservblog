@@ -4,6 +4,14 @@ import { ArrowUpRight, ImageOff } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { VerifiedBadge } from "./VerifiedBadge";
+import { CategoryBadge } from "./CategoryBadge";
+
+interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  color: string;
+}
 
 interface PostCardProps {
   id: string;
@@ -14,6 +22,7 @@ interface PostCardProps {
   createdAt: string;
   coverImage?: string | null;
   userId?: string | null;
+  category?: Category | null;
 }
 
 export function PostCard({ 
@@ -23,7 +32,8 @@ export function PostCard({
   authorName, 
   createdAt,
   coverImage,
-  userId
+  userId,
+  category
 }: PostCardProps) {
   const [imageError, setImageError] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -64,9 +74,14 @@ export function PostCard({
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-4">
-              <h2 className="text-lg font-medium tracking-tight group-hover:text-muted-foreground transition-colors line-clamp-2">
-                {title}
-              </h2>
+              <div className="space-y-2">
+                {category && (
+                  <CategoryBadge name={category.name} color={category.color} size="sm" />
+                )}
+                <h2 className="text-lg font-medium tracking-tight group-hover:text-muted-foreground transition-colors line-clamp-2">
+                  {title}
+                </h2>
+              </div>
               <ArrowUpRight className="h-4 w-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
             </div>
             
