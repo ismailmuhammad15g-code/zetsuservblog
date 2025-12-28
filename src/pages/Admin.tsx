@@ -26,8 +26,10 @@ import {
   Pin,
   PinOff,
   Clock,
-  CalendarClock
+  CalendarClock,
+  BarChart3
 } from "lucide-react";
+import { AdminStats } from "@/components/admin/AdminStats";
 import { Link } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
 
@@ -325,8 +327,12 @@ export default function Admin() {
       </header>
 
       <div className="container py-8">
-        <Tabs defaultValue="posts" className="w-full">
+        <Tabs defaultValue="stats" className="w-full">
           <TabsList className="mb-6">
+            <TabsTrigger value="stats" className="gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Statistics
+            </TabsTrigger>
             <TabsTrigger value="posts" className="gap-2">
               <FileText className="h-4 w-4" />
               Posts
@@ -340,6 +346,10 @@ export default function Admin() {
               Announcements
             </TabsTrigger>
           </TabsList>
+
+          <TabsContent value="stats">
+            <AdminStats />
+          </TabsContent>
 
           <TabsContent value="posts">
             {showEditor ? (
