@@ -1,36 +1,40 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { X, Megaphone, Sparkles, Zap, ExternalLink, Newspaper } from "lucide-react";
 
 interface Announcement {
   id: string;
   text: string;
-  icon?: "megaphone" | "sparkles" | "zap" | "newspaper";
-  link?: string;
+  icon: string;
+  link: string | null;
 }
 
-const announcements: Announcement[] = [
-  { 
-    id: "1", 
-    text: "📰 اقرأ مدونتنا الرسمية ZetsuBlog على Hashnode!", 
-    icon: "newspaper",
-    link: "https://zetsu.hashnode.dev/"
-  },
-  { id: "2", text: "🎉 مرحباً بك في ZetsuServ Blog - مصدرك للرؤى التقنية!", icon: "sparkles" },
-  { id: "3", text: "⚡ ميزات جديدة قادمة قريباً - ترقبوا!", icon: "zap" },
-  { id: "4", text: "📢 انضم إلى مجتمعنا وابدأ بمشاركة أفكارك!", icon: "megaphone" },
-];
+const IconComponent: Record<string, typeof Megaphone> = {
+  megaphone: Megaphone,
+  sparkles: Sparkles,
+  zap: Zap,
+  newspaper: Newspaper,
+};
 
 export function AnnouncementBanner() {
   const [isVisible, setIsVisible] = useState(true);
 
-  if (!isVisible) return null;
+  const { data: announcements } = useQuery({
+    queryKey: ["announcements"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("announcements")
+        .select("id, text, icon, link")
+        .eq("is_active", true)
+        .order("display_order", { ascending: true });
 
-  const IconComponent = {
-    megaphone: Megaphone,
-    sparkles: Sparkles,
-    zap: Zap,
-    newspaper: Newspaper,
-  };
+      if (error) throw error;
+      return data as Announcement[];
+    },
+  });
+
+  if (!isVisible || !announcements || announcements.length === 0) return null;
 
   return (
     <div className="bg-gradient-to-r from-primary via-primary/90 to-primary text-primary-foreground relative overflow-hidden z-50 shadow-md">
@@ -38,7 +42,7 @@ export function AnnouncementBanner() {
         <div className="flex-1 overflow-hidden">
           <div className="animate-marquee whitespace-nowrap flex items-center gap-16">
             {[...announcements, ...announcements].map((announcement, index) => {
-              const Icon = IconComponent[announcement.icon || "megaphone"];
+              const Icon = IconComponent[announcement.icon] || Megaphone;
               return (
                 <span key={`${announcement.id}-${index}`} className="inline-flex items-center gap-2 text-sm font-medium">
                   {announcement.link ? (
