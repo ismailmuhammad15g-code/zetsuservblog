@@ -189,7 +189,20 @@ export function NotificationBell() {
     }
   };
 
-  if (!user) return null;
+  if (!user) {
+    return (
+      <Button
+        variant="ghost"
+        size="icon"
+        className="relative"
+        onClick={() => navigate("/auth")}
+        aria-label="Notifications"
+        title="Sign in to view notifications"
+      >
+        <Bell className="h-5 w-5" />
+      </Button>
+    );
+  }
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
