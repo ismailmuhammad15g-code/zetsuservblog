@@ -6,13 +6,15 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { ShareButtons } from "@/components/ShareButtons";
 import { PostLikes } from "@/components/PostLikes";
 import { PostComments } from "@/components/PostComments";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ArrowLeft, Loader2, Calendar, User, ImageOff } from "lucide-react";
 import { format } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function Post() {
   const { slug } = useParams<{ slug: string }>();
   const [imageError, setImageError] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const { data: post, isLoading, error } = useQuery({
     queryKey: ["post", slug],
@@ -29,6 +31,21 @@ export default function Post() {
     },
     enabled: !!slug,
   });
+
+  useEffect(() => {
+    if (post?.user_id) {
+      checkAdminRole(post.user_id);
+    }
+  }, [post?.user_id]);
+
+  const checkAdminRole = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    
+    setIsAdmin(data?.some(r => r.role === "admin") ?? false);
+  };
 
   if (isLoading) {
     return (
@@ -82,7 +99,10 @@ export default function Post() {
           <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              <span>{post.author_name}</span>
+              <span className="flex items-center gap-1">
+                {post.author_name}
+                {isAdmin && <VerifiedBadge />}
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
