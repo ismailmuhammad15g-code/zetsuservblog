@@ -2,7 +2,24 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const VAPID_PUBLIC_KEY = import.meta.env.VITE_VAPID_PUBLIC_KEY || "";
+let cachedVapidKey: string | null = null;
+
+async function getVapidPublicKey(): Promise<string | null> {
+  if (cachedVapidKey) return cachedVapidKey;
+  
+  try {
+    const { data, error } = await supabase.functions.invoke("get-vapid-key");
+    if (error) {
+      console.error("Error fetching VAPID key:", error);
+      return null;
+    }
+    cachedVapidKey = data?.publicKey || null;
+    return cachedVapidKey;
+  } catch (e) {
+    console.error("Error fetching VAPID key:", e);
+    return null;
+  }
+}
 
 function urlBase64ToUint8Array(base64String: string): ArrayBuffer {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
@@ -20,6 +37,7 @@ export function usePushNotifications() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [permission, setPermission] = useState<NotificationPermission>("default");
   const [loading, setLoading] = useState(false);
+  const [vapidKey, setVapidKey] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -30,6 +48,8 @@ export function usePushNotifications() {
     if (supported) {
       setPermission(Notification.permission);
       checkExistingSubscription();
+      // Fetch VAPID key
+      getVapidPublicKey().then(setVapidKey);
     }
   }, []);
 
@@ -66,8 +86,15 @@ export function usePushNotifications() {
       return false;
     }
 
-    if (!VAPID_PUBLIC_KEY) {
-      console.error("VAPID public key not configured");
+    // Get VAPID key if not cached
+    let key = vapidKey;
+    if (!key) {
+      key = await getVapidPublicKey();
+      setVapidKey(key);
+    }
+
+    if (!key) {
+      console.error("VAPID public key not available");
       toast({
         title: "Configuration Error",
         description: "Push notifications are not configured yet.",
@@ -110,7 +137,7 @@ export function usePushNotifications() {
       if (!subscription) {
         subscription = await registration.pushManager.subscribe({
           userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+          applicationServerKey: urlBase64ToUint8Array(key),
         });
       }
 
@@ -154,7 +181,7 @@ export function usePushNotifications() {
     } finally {
       setLoading(false);
     }
-  }, [isSupported, toast, registerServiceWorker]);
+  }, [isSupported, vapidKey, toast, registerServiceWorker]);
 
   const unsubscribe = useCallback(async (): Promise<boolean> => {
     setLoading(true);
