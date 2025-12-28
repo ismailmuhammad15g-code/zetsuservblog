@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
+import { CategoryManager } from "@/components/admin/CategoryManager";
 import { 
   Loader2, 
   LogOut, 
@@ -20,7 +21,8 @@ import {
   ArrowLeft,
   X,
   FileText,
-  Megaphone
+  Megaphone,
+  Tags
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
@@ -286,6 +288,10 @@ export default function Admin() {
               <FileText className="h-4 w-4" />
               Posts
             </TabsTrigger>
+            <TabsTrigger value="categories" className="gap-2">
+              <Tags className="h-4 w-4" />
+              Categories
+            </TabsTrigger>
             <TabsTrigger value="announcements" className="gap-2">
               <Megaphone className="h-4 w-4" />
               Announcements
@@ -478,6 +484,10 @@ export default function Admin() {
                 )}
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="categories">
+            <CategoryManager />
           </TabsContent>
 
           <TabsContent value="announcements">
