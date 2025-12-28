@@ -286,6 +286,8 @@ export type Database = {
           created_at: string
           excerpt: string | null
           id: string
+          is_pinned: boolean
+          pinned_at: string | null
           published: boolean
           slug: string
           title: string
@@ -300,6 +302,8 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           id?: string
+          is_pinned?: boolean
+          pinned_at?: string | null
           published?: boolean
           slug: string
           title: string
@@ -314,6 +318,8 @@ export type Database = {
           created_at?: string
           excerpt?: string | null
           id?: string
+          is_pinned?: boolean
+          pinned_at?: string | null
           published?: boolean
           slug?: string
           title?: string

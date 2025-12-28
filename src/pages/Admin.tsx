@@ -22,7 +22,9 @@ import {
   X,
   FileText,
   Megaphone,
-  Tags
+  Tags,
+  Pin,
+  PinOff
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
@@ -38,6 +40,8 @@ interface Post {
   author_name: string;
   created_at: string;
   updated_at: string;
+  is_pinned: boolean;
+  pinned_at: string | null;
 }
 
 export default function Admin() {
@@ -169,6 +173,34 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
       toast({ title: "Deleted", description: "Post deleted successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Error", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    },
+  });
+
+  const pinMutation = useMutation({
+    mutationFn: async ({ id, isPinned }: { id: string; isPinned: boolean }) => {
+      const { error } = await supabase
+        .from("posts")
+        .update({ 
+          is_pinned: isPinned,
+          pinned_at: isPinned ? new Date().toISOString() : null
+        })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: (_, { isPinned }) => {
+      queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
+      queryClient.invalidateQueries({ queryKey: ["posts"] });
+      toast({ 
+        title: isPinned ? "Pinned" : "Unpinned", 
+        description: isPinned ? "Post pinned to top" : "Post unpinned" 
+      });
     },
     onError: (error: any) => {
       toast({ 
@@ -417,6 +449,7 @@ export default function Admin() {
                         <tr>
                           <th className="text-left text-sm font-medium px-4 py-3">Title</th>
                           <th className="text-left text-sm font-medium px-4 py-3 hidden md:table-cell">Status</th>
+                          <th className="text-left text-sm font-medium px-4 py-3 hidden lg:table-cell">Pinned</th>
                           <th className="text-left text-sm font-medium px-4 py-3 hidden sm:table-cell">Date</th>
                           <th className="text-right text-sm font-medium px-4 py-3">Actions</th>
                         </tr>
@@ -425,7 +458,12 @@ export default function Admin() {
                         {posts.map((post) => (
                           <tr key={post.id} className="hover:bg-muted/30 transition-colors">
                             <td className="px-4 py-3">
-                              <span className="font-medium">{post.title}</span>
+                              <div className="flex items-center gap-2">
+                                {post.is_pinned && (
+                                  <Pin className="h-4 w-4 text-rose-500 shrink-0" />
+                                )}
+                                <span className="font-medium">{post.title}</span>
+                              </div>
                             </td>
                             <td className="px-4 py-3 hidden md:table-cell">
                               <span className={`text-xs px-2 py-1 rounded ${
@@ -436,11 +474,29 @@ export default function Admin() {
                                 {post.published ? "Published" : "Draft"}
                               </span>
                             </td>
+                            <td className="px-4 py-3 hidden lg:table-cell">
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                post.is_pinned 
+                                  ? "bg-rose-500/10 text-rose-500" 
+                                  : "bg-muted text-muted-foreground"
+                              }`}>
+                                {post.is_pinned ? "Pinned" : "Not Pinned"}
+                              </span>
+                            </td>
                             <td className="px-4 py-3 text-sm text-muted-foreground hidden sm:table-cell">
                               {new Date(post.created_at).toLocaleDateString()}
                             </td>
                             <td className="px-4 py-3">
-                              <div className="flex items-center justify-end gap-2">
+                              <div className="flex items-center justify-end gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => pinMutation.mutate({ id: post.id, isPinned: !post.is_pinned })}
+                                  title={post.is_pinned ? "Unpin post" : "Pin post"}
+                                  className={post.is_pinned ? "text-rose-500 hover:text-rose-600" : ""}
+                                >
+                                  {post.is_pinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
+                                </Button>
                                 {post.published && (
                                   <Link to={`/post/${post.slug}`} target="_blank">
                                     <Button variant="ghost" size="sm">

@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { PostCard } from "@/components/PostCard";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
-import { Loader2, TrendingUp, Clock, Sparkles, Crown, Users, ArrowRight } from "lucide-react";
+import { Loader2, TrendingUp, Clock, Sparkles, Crown, Users, ArrowRight, Pin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 type SortOption = "latest" | "popular" | "trending";
@@ -56,14 +56,26 @@ export default function Index() {
     },
   });
 
-  // Separate admin posts from community posts
-  const { adminPosts, communityPosts } = useMemo(() => {
-    if (!posts) return { adminPosts: [], communityPosts: [] };
+  // Separate admin posts from community posts, with pinned posts first
+  const { pinnedPosts, adminPosts, communityPosts } = useMemo(() => {
+    if (!posts) return { pinnedPosts: [], adminPosts: [], communityPosts: [] };
     
-    const admins = posts.filter(post => post.user_id && adminIds.includes(post.user_id));
-    const community = posts.filter(post => !post.user_id || !adminIds.includes(post.user_id));
+    // Pinned posts always first (sorted by pinned_at)
+    const pinned = posts
+      .filter(post => post.is_pinned)
+      .sort((a, b) => new Date(b.pinned_at || 0).getTime() - new Date(a.pinned_at || 0).getTime());
     
-    return { adminPosts: admins, communityPosts: community };
+    // Admin posts (excluding pinned)
+    const admins = posts.filter(post => 
+      !post.is_pinned && post.user_id && adminIds.includes(post.user_id)
+    );
+    
+    // Community posts (excluding pinned)
+    const community = posts.filter(post => 
+      !post.is_pinned && (!post.user_id || !adminIds.includes(post.user_id))
+    );
+    
+    return { pinnedPosts: pinned, adminPosts: admins, communityPosts: community };
   }, [posts, adminIds]);
 
   // Filter and sort function
@@ -105,6 +117,7 @@ export default function Index() {
     return result;
   };
 
+  const filteredPinnedPosts = useMemo(() => filterAndSort(pinnedPosts), [pinnedPosts, searchQuery, selectedCategory, sortBy]);
   const filteredAdminPosts = useMemo(() => filterAndSort(adminPosts), [adminPosts, searchQuery, selectedCategory, sortBy]);
   const filteredCommunityPosts = useMemo(() => filterAndSort(communityPosts), [communityPosts, searchQuery, selectedCategory, sortBy]);
 
@@ -169,7 +182,40 @@ export default function Index() {
           </div>
         ) : (
           <>
-            {/* Official Posts Section - Always at Top */}
+            {/* Pinned Posts Section - Always First */}
+            {filteredPinnedPosts.length > 0 && (
+              <section className="mb-16">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-rose-500/20 to-rose-600/10 border border-rose-500/30">
+                    <Pin className="h-5 w-5 text-rose-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold tracking-tight">Pinned Posts</h2>
+                    <p className="text-sm text-muted-foreground">Important content pinned by administrators</p>
+                  </div>
+                </div>
+
+                <div className="animate-slide-up rounded-xl border border-rose-500/20 bg-gradient-to-br from-rose-500/5 to-transparent p-4">
+                  {filteredPinnedPosts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      id={post.id}
+                      title={post.title}
+                      excerpt={post.excerpt}
+                      slug={post.slug}
+                      authorName={post.author_name}
+                      createdAt={post.created_at}
+                      coverImage={post.cover_image}
+                      userId={post.user_id}
+                      category={post.categories}
+                      isPinned={true}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Official Posts Section */}
             <section className="mb-16">
               <div className="flex items-center gap-3 mb-6">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30">

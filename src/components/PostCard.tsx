@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowUpRight, ImageOff } from "lucide-react";
+import { ArrowUpRight, ImageOff, Pin } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -23,6 +23,7 @@ interface PostCardProps {
   coverImage?: string | null;
   userId?: string | null;
   category?: Category | null;
+  isPinned?: boolean;
 }
 
 export function PostCard({ 
@@ -33,7 +34,8 @@ export function PostCard({
   createdAt,
   coverImage,
   userId,
-  category
+  category,
+  isPinned = false
 }: PostCardProps) {
   const [imageError, setImageError] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
@@ -75,9 +77,17 @@ export function PostCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-2">
-                {category && (
-                  <CategoryBadge name={category.name} color={category.color} size="sm" />
-                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  {isPinned && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-500 border border-rose-500/20">
+                      <Pin className="h-3 w-3" />
+                      Pinned
+                    </span>
+                  )}
+                  {category && (
+                    <CategoryBadge name={category.name} color={category.color} size="sm" />
+                  )}
+                </div>
                 <h2 className="text-lg font-medium tracking-tight group-hover:text-muted-foreground transition-colors line-clamp-2">
                   {title}
                 </h2>
