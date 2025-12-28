@@ -15,11 +15,25 @@ export function PushNotificationToggle({
 }: PushNotificationToggleProps) {
   const { isSupported, isSubscribed, permission, loading, subscribe, unsubscribe } = usePushNotifications();
 
+  console.log("[PushToggle] isSupported:", isSupported, "isSubscribed:", isSubscribed, "loading:", loading, "permission:", permission);
+
   if (!isSupported) {
-    return null;
+    return (
+      <div className="flex items-center justify-between">
+        <div className="space-y-0.5">
+          <Label className="text-sm font-medium text-muted-foreground">
+            Push Notifications
+          </Label>
+          <p className="text-xs text-muted-foreground">
+            Not supported in this browser
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const handleToggle = async () => {
+    console.log("[PushToggle] Toggle clicked, current isSubscribed:", isSubscribed);
     if (isSubscribed) {
       await unsubscribe();
     } else {
