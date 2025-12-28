@@ -16,6 +16,8 @@ import Bookmarks from "./pages/Bookmarks";
 import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
 import { WelcomeMessage } from "./components/WelcomeMessage";
+import { ScrollToTop } from "./components/ScrollToTop";
+import { BackToTop } from "./components/BackToTop";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +27,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/post/:slug" element={<Post />} />
@@ -45,6 +48,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
         <WelcomeMessage />
+        <BackToTop />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

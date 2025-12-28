@@ -179,6 +179,7 @@ export default function Community() {
                   userId={post.user_id}
                   category={post.categories}
                   viewsCount={post.views_count}
+                  content={post.content}
                 />
               ))}
             </div>
