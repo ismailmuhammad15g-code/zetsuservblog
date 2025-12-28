@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
@@ -28,15 +28,6 @@ const contactSchema = z.object({
   message: z.string().trim().min(1, "Message is required").max(2000, "Message is too long"),
 });
 
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-}
-
 export default function Contact() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -45,7 +36,6 @@ export default function Contact() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
-  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,38 +50,11 @@ export default function Contact() {
       return;
     }
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to contact support.",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-
     setIsLoading(true);
 
     try {
-      const safeName = escapeHtml(parsed.data.name);
-      const safeEmail = escapeHtml(parsed.data.email);
-      const safeSubject = escapeHtml(parsed.data.subject);
-      const safeMessage = escapeHtml(parsed.data.message).replace(/\n/g, "<br>");
-
       const { error } = await supabase.functions.invoke("send-email", {
-        body: {
-          to: "zetsuserv@gmail.com",
-          subject: `[Contact Form] ${safeSubject}`,
-          html: `
-            <h2>New Contact Form Submission</h2>
-            <p><strong>Name:</strong> ${safeName}</p>
-            <p><strong>Email:</strong> ${safeEmail}</p>
-            <p><strong>Subject:</strong> ${safeSubject}</p>
-            <p><strong>Message:</strong></p>
-            <p>${safeMessage}</p>
-          `,
-        },
+        body: parsed.data,
       });
 
       if (error) throw error;
