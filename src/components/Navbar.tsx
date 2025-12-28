@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, Settings, Shield, FileText } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Settings, Shield, FileText, Bell } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -115,7 +116,9 @@ export function Navbar() {
           </Link>
           
           {user ? (
-            <DropdownMenu>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-9 gap-2 px-2">
                   <Avatar className="h-7 w-7">
@@ -169,6 +172,7 @@ export function Navbar() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           ) : (
             <Link to="/auth">
               <Button variant="outline" size="sm" className="h-8 text-xs">
