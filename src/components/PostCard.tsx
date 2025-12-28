@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowUpRight, ImageOff, Pin, Eye } from "lucide-react";
+import { ArrowUpRight, ImageOff, Pin, Eye, Clock } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { VerifiedBadge } from "./VerifiedBadge";
@@ -25,6 +25,7 @@ interface PostCardProps {
   category?: Category | null;
   isPinned?: boolean;
   viewsCount?: number;
+  content?: string;
 }
 
 export function PostCard({ 
@@ -37,10 +38,16 @@ export function PostCard({
   userId,
   category,
   isPinned = false,
-  viewsCount = 0
+  viewsCount = 0,
+  content = ""
 }: PostCardProps) {
   const [imageError, setImageError] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+
+  // Calculate reading time
+  const wordsPerMinute = 200;
+  const wordCount = content.trim().split(/\s+/).length;
+  const readingTime = Math.max(1, Math.ceil(wordCount / wordsPerMinute));
 
   useEffect(() => {
     if (userId) {
@@ -112,6 +119,15 @@ export function PostCard({
               <time dateTime={createdAt}>
                 {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
               </time>
+              {content && (
+                <>
+                  <span>·</span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-3 w-3" />
+                    {readingTime} min
+                  </span>
+                </>
+              )}
               {viewsCount > 0 && (
                 <>
                   <span>·</span>

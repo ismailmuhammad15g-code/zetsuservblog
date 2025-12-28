@@ -210,6 +210,7 @@ export default function Index() {
                       category={post.categories}
                       isPinned={true}
                       viewsCount={post.views_count}
+                      content={post.content}
                     />
                   ))}
                 </div>
@@ -243,6 +244,7 @@ export default function Index() {
                       userId={post.user_id}
                       category={post.categories}
                       viewsCount={post.views_count}
+                      content={post.content}
                     />
                   ))}
                 </div>
@@ -293,6 +295,7 @@ export default function Index() {
                       userId={post.user_id}
                       category={post.categories}
                       viewsCount={post.views_count}
+                      content={post.content}
                     />
                   ))}
                   {filteredCommunityPosts.length > 5 && (
