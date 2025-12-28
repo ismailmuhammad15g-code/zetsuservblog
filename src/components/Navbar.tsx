@@ -188,14 +188,17 @@ export function Navbar() {
           )}
         </div>
 
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden p-2 hover:bg-accent rounded-lg transition-colors"
-          onClick={() => setIsOpen(!isOpen)}
-          aria-label="Toggle menu"
-        >
+        {/* Mobile Menu / Notifications */}
+        <div className="md:hidden flex items-center gap-1">
+          {user && <NotificationBell />}
+          <button
+            className="p-2 hover:bg-accent rounded-lg transition-colors"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Toggle menu"
+          >
           {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-        </button>
+          </button>
+        </div>
       </nav>
 
       {/* Mobile Navigation */}

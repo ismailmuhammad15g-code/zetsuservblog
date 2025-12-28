@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { z } from "zod";
 import { Layout } from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,18 +8,34 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { 
-  ArrowLeft, 
-  Send, 
-  Mail, 
-  MessageSquare, 
+import {
+  ArrowLeft,
+  Send,
+  Mail,
+  MessageSquare,
   User,
   Loader2,
   CheckCircle2,
   Twitter,
   Github,
-  Linkedin
+  Linkedin,
 } from "lucide-react";
+
+const contactSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(100, "Name is too long"),
+  email: z.string().trim().email("Invalid email").max(255, "Email is too long"),
+  subject: z.string().trim().min(1, "Subject is required").max(150, "Subject is too long"),
+  message: z.string().trim().min(1, "Message is required").max(2000, "Message is too long"),
+});
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
 
 export default function Contact() {
   const [name, setName] = useState("");
@@ -28,23 +45,51 @@ export default function Contact() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const parsed = contactSchema.safeParse({ name, email, subject, message });
+    if (!parsed.success) {
+      toast({
+        title: "Please check the form",
+        description: parsed.error.issues[0]?.message ?? "Invalid input",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to contact support.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke("send-email", {
+      const safeName = escapeHtml(parsed.data.name);
+      const safeEmail = escapeHtml(parsed.data.email);
+      const safeSubject = escapeHtml(parsed.data.subject);
+      const safeMessage = escapeHtml(parsed.data.message).replace(/\n/g, "<br>");
+
+      const { error } = await supabase.functions.invoke("send-email", {
         body: {
           to: "zetsuserv@gmail.com",
-          subject: `[Contact Form] ${subject}`,
+          subject: `[Contact Form] ${safeSubject}`,
           html: `
             <h2>New Contact Form Submission</h2>
-            <p><strong>Name:</strong> ${name}</p>
-            <p><strong>Email:</strong> ${email}</p>
-            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Name:</strong> ${safeName}</p>
+            <p><strong>Email:</strong> ${safeEmail}</p>
+            <p><strong>Subject:</strong> ${safeSubject}</p>
             <p><strong>Message:</strong></p>
-            <p>${message.replace(/\n/g, "<br>")}</p>
+            <p>${safeMessage}</p>
           `,
         },
       });
@@ -60,7 +105,7 @@ export default function Contact() {
       console.error("Error sending email:", error);
       toast({
         title: "Error sending message",
-        description: "Please try again later or email us directly.",
+        description: error?.message || "Please try again later or email us directly.",
         variant: "destructive",
       });
     } finally {
