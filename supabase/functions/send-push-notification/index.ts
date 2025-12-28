@@ -53,8 +53,6 @@ function vapidBase64UrlToExportedJwk(vapidPublicKey: string, vapidPrivateKey: st
     crv: "P-256",
     x,
     y,
-    ext: false,
-    key_ops: ["verify"],
   };
 
   const privateKey: JsonWebKey = {
@@ -63,8 +61,6 @@ function vapidBase64UrlToExportedJwk(vapidPublicKey: string, vapidPrivateKey: st
     x,
     y,
     d,
-    ext: false,
-    key_ops: ["sign"],
   };
 
   return { publicKey, privateKey };
