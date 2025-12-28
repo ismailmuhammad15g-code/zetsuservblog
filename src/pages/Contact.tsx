@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 import { 
   ArrowLeft, 
   Send, 
@@ -32,15 +33,39 @@ export default function Contact() {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simulate sending message
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      const { data, error } = await supabase.functions.invoke("send-email", {
+        body: {
+          to: "zetsuserv@gmail.com",
+          subject: `[Contact Form] ${subject}`,
+          html: `
+            <h2>New Contact Form Submission</h2>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Subject:</strong> ${subject}</p>
+            <p><strong>Message:</strong></p>
+            <p>${message.replace(/\n/g, "<br>")}</p>
+          `,
+        },
+      });
 
-    setIsSubmitted(true);
-    toast({
-      title: "Message sent!",
-      description: "We'll get back to you as soon as possible.",
-    });
-    setIsLoading(false);
+      if (error) throw error;
+
+      setIsSubmitted(true);
+      toast({
+        title: "Message sent!",
+        description: "We'll get back to you as soon as possible.",
+      });
+    } catch (error: any) {
+      console.error("Error sending email:", error);
+      toast({
+        title: "Error sending message",
+        description: "Please try again later or email us directly.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (isSubmitted) {
@@ -95,7 +120,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <h3 className="font-medium">Email</h3>
-                  <p className="text-sm text-muted-foreground">support@zetsuserv.com</p>
+                  <p className="text-sm text-muted-foreground">zetsuserv@gmail.com</p>
                 </div>
               </div>
 
