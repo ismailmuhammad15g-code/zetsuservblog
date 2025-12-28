@@ -6,6 +6,7 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { ShareButtons } from "@/components/ShareButtons";
 import { PostLikes } from "@/components/PostLikes";
 import { PostComments } from "@/components/PostComments";
+import { BookmarkButton } from "@/components/BookmarkButton";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { ArrowLeft, Loader2, Calendar, User, ImageOff } from "lucide-react";
 import { format } from "date-fns";
@@ -134,9 +135,12 @@ export default function Post() {
 
         {/* Likes and Comments Section */}
         <div className="mt-10 pt-8 border-t border-border space-y-6">
-          <div className="flex items-center gap-4">
-            <PostLikes postId={post.id} />
-            <ShareButtons title={post.title} />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <PostLikes postId={post.id} />
+              <ShareButtons title={post.title} />
+            </div>
+            <BookmarkButton postId={post.id} variant="full" />
           </div>
           
           <PostComments postId={post.id} />
