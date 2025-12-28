@@ -11,7 +11,9 @@ import Register from "./pages/Register";
 import Admin from "./pages/Admin";
 import Settings from "./pages/Settings";
 import UserPosts from "./pages/UserPosts";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
+import { WelcomeMessage } from "./components/WelcomeMessage";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +31,7 @@ const App = () => (
           <Route path="/register" element={<Register />} />
           <Route path="/admin" element={<Admin />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/contact" element={<Contact />} />
 
           {/* User posts (canonical + legacy aliases) */}
           <Route path="/:username/post" element={<UserPosts />} />
@@ -37,6 +40,7 @@ const App = () => (
 
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <WelcomeMessage />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
