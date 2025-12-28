@@ -8,8 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { Camera, Loader2, FileText, Sparkles, Bell } from "lucide-react";
+import { Camera, Loader2, FileText, Sparkles, Bell, BarChart3 } from "lucide-react";
 import { PushNotificationToggle } from "@/components/PushNotificationToggle";
+import { UserStats } from "@/components/UserStats";
 import type { User } from "@supabase/supabase-js";
 
 interface Profile {
@@ -330,6 +331,24 @@ export default function Settings() {
             <PushNotificationToggle showLabel={true} />
           </CardContent>
         </Card>
+
+        {/* Stats Card - Only show for creators */}
+        {isCreator && user && (
+          <Card className="mb-6">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                <BarChart3 className="h-5 w-5 text-primary" />
+                Your Statistics
+              </CardTitle>
+              <CardDescription>
+                Track the performance of your posts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <UserStats userId={user.id} />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Creator Card */}
         <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5">
