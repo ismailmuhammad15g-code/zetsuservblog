@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useToast } from "@/hooks/use-toast";
 import { MessageCircle, Send, Loader2, Trash2 } from "lucide-react";
 import { format } from "date-fns";
+import { CommentLikes } from "./CommentLikes";
 import type { User } from "@supabase/supabase-js";
 
 interface Comment {
@@ -205,6 +206,9 @@ export function PostComments({ postId }: PostCommentsProps) {
                       </div>
                     </div>
                     <p className="text-sm">{comment.content}</p>
+                    <div className="mt-2 -ml-2">
+                      <CommentLikes commentId={comment.id} />
+                    </div>
                   </div>
                 </div>
               ))}

@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, Settings, Shield, FileText, Bell } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Settings, Shield, FileText, Bookmark } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -157,6 +157,12 @@ export function Navbar() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link to="/bookmarks" className="flex items-center gap-2 cursor-pointer">
+                    <Bookmark className="h-4 w-4" />
+                    Saved Posts
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
                     <Settings className="h-4 w-4" />
                     Settings
@@ -251,6 +257,14 @@ export function Navbar() {
                 >
                   <FileText className="h-4 w-4" />
                   My Posts
+                </Link>
+                <Link 
+                  to="/bookmarks"
+                  onClick={() => setIsOpen(false)}
+                  className="text-sm py-2 flex items-center gap-2"
+                >
+                  <Bookmark className="h-4 w-4" />
+                  Saved Posts
                 </Link>
                 <Link 
                   to="/settings" 
