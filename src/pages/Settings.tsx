@@ -17,7 +17,7 @@ interface Profile {
   full_name: string | null;
   avatar_url: string | null;
   username: string | null;
-  is_creator: boolean;
+  is_creator: boolean | null;
 }
 
 export default function Settings() {
@@ -30,18 +30,30 @@ export default function Settings() {
   const [username, setUsername] = useState("");
   const [creatingDashboard, setCreatingDashboard] = useState(false);
   const [loadingStep, setLoadingStep] = useState("");
+  const [hasPosts, setHasPosts] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  const dashboardPath = (profile?.username || username) ? `/${profile?.username || username}/post` : "/me/post";
+  const isCreator = Boolean(profile?.is_creator) || hasPosts;
+
   useEffect(() => {
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        navigate("/auth");
-        return;
+      setLoading(true);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          navigate("/auth");
+          return;
+        }
+        setUser(session.user);
+        await Promise.all([
+          fetchProfile(session.user.id),
+          fetchHasPosts(session.user.id),
+        ]);
+      } finally {
+        setLoading(false);
       }
-      setUser(session.user);
-      await fetchProfile(session.user.id);
     };
     getSession();
   }, [navigate]);
@@ -55,7 +67,7 @@ export default function Settings() {
         .maybeSingle();
 
       if (error) throw error;
-      
+
       if (data) {
         setProfile(data);
         setFullName(data.full_name || "");
@@ -63,8 +75,20 @@ export default function Settings() {
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
-    } finally {
-      setLoading(false);
+    }
+  };
+
+  const fetchHasPosts = async (userId: string) => {
+    try {
+      const { count, error } = await supabase
+        .from("posts")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", userId);
+
+      if (error) throw error;
+      setHasPosts((count ?? 0) > 0);
+    } catch (error) {
+      console.error("Error fetching posts:", error);
     }
   };
 
@@ -146,11 +170,13 @@ export default function Settings() {
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ is_creator: true })
+        .update({ is_creator: true, username })
         .eq("id", user.id);
 
       if (error) throw error;
-      
+
+      setProfile((prev) => (prev ? { ...prev, is_creator: true, username } : prev));
+      toast({ title: "Dashboard enabled!" });
       navigate(`/${username}/post`);
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
@@ -288,22 +314,31 @@ export default function Settings() {
           </CardContent>
         </Card>
 
-        {/* Start Posting Card */}
+        {/* Creator Card */}
         <Card className="border-primary/20 bg-gradient-to-br from-background to-primary/5">
           <CardHeader className="pb-4">
             <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
               <FileText className="h-5 w-5 text-primary" />
-              Start Posting
+              {isCreator ? "Dashboard" : "Start Posting"}
             </CardTitle>
             <CardDescription>
-              Create your own blog posts and share your thoughts with the world
+              {isCreator
+                ? "Manage your posts, drafts, and create new content"
+                : "Create your own blog posts and share your thoughts with the world"}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={handleStartPosting} className="w-full gap-2">
-              <Sparkles className="h-4 w-4" />
-              Start Posting 📜
-            </Button>
+            {isCreator ? (
+              <Button onClick={() => navigate(dashboardPath)} className="w-full gap-2">
+                <FileText className="h-4 w-4" />
+                Go to Dashboard
+              </Button>
+            ) : (
+              <Button onClick={handleStartPosting} className="w-full gap-2">
+                <Sparkles className="h-4 w-4" />
+                Start Posting 📜
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>
