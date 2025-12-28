@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
 import { 
   Loader2, 
   LogOut, 
@@ -16,7 +18,9 @@ import {
   Trash2, 
   Eye,
   ArrowLeft,
-  X
+  X,
+  FileText,
+  Megaphone
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { User } from "@supabase/supabase-js";
@@ -276,191 +280,210 @@ export default function Admin() {
       </header>
 
       <div className="container py-8">
-        {showEditor ? (
-          <div className="max-w-3xl animate-fade-in">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold">
-                {editingPost ? "Edit Post" : "New Post"}
-              </h2>
-              <Button variant="ghost" size="sm" onClick={resetForm}>
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
+        <Tabs defaultValue="posts" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="posts" className="gap-2">
+              <FileText className="h-4 w-4" />
+              Posts
+            </TabsTrigger>
+            <TabsTrigger value="announcements" className="gap-2">
+              <Megaphone className="h-4 w-4" />
+              Announcements
+            </TabsTrigger>
+          </TabsList>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="title">Title</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => {
-                      setFormData({
-                        ...formData,
-                        title: e.target.value,
-                        slug: editingPost ? formData.slug : generateSlug(e.target.value),
-                      });
-                    }}
-                    required
-                  />
+          <TabsContent value="posts">
+            {showEditor ? (
+              <div className="max-w-3xl animate-fade-in">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-semibold">
+                    {editingPost ? "Edit Post" : "New Post"}
+                  </h2>
+                  <Button variant="ghost" size="sm" onClick={resetForm}>
+                    <X className="h-4 w-4" />
+                  </Button>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="slug">Slug</Label>
-                  <Input
-                    id="slug"
-                    value={formData.slug}
-                    onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
-                    required
-                  />
-                </div>
-              </div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="title">Title</Label>
+                      <Input
+                        id="title"
+                        value={formData.title}
+                        onChange={(e) => {
+                          setFormData({
+                            ...formData,
+                            title: e.target.value,
+                            slug: editingPost ? formData.slug : generateSlug(e.target.value),
+                          });
+                        }}
+                        required
+                      />
+                    </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="excerpt">Excerpt</Label>
-                <Input
-                  id="excerpt"
-                  value={formData.excerpt}
-                  onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
-                  placeholder="Brief description of the post"
-                />
-              </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="slug">Slug</Label>
+                      <Input
+                        id="slug"
+                        value={formData.slug}
+                        onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="cover_image">Cover Image URL</Label>
-                <Input
-                  id="cover_image"
-                  value={formData.cover_image}
-                  onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
-                  placeholder="https://..."
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="excerpt">Excerpt</Label>
+                    <Input
+                      id="excerpt"
+                      value={formData.excerpt}
+                      onChange={(e) => setFormData({ ...formData, excerpt: e.target.value })}
+                      placeholder="Brief description of the post"
+                    />
+                  </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="content">Content (Markdown)</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={(e) => setFormData({ ...formData, content: e.target.value })}
-                  required
-                  rows={16}
-                  className="font-mono text-sm"
-                  placeholder="Write your post in Markdown..."
-                />
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="cover_image">Cover Image URL</Label>
+                    <Input
+                      id="cover_image"
+                      value={formData.cover_image}
+                      onChange={(e) => setFormData({ ...formData, cover_image: e.target.value })}
+                      placeholder="https://..."
+                    />
+                  </div>
 
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="published"
-                  checked={formData.published}
-                  onCheckedChange={(checked) => 
-                    setFormData({ ...formData, published: checked })
-                  }
-                />
-                <Label htmlFor="published">Published</Label>
-              </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="content">Content (Markdown)</Label>
+                    <Textarea
+                      id="content"
+                      value={formData.content}
+                      onChange={(e) => setFormData({ ...formData, content: e.target.value })}
+                      required
+                      rows={16}
+                      className="font-mono text-sm"
+                      placeholder="Write your post in Markdown..."
+                    />
+                  </div>
 
-              <div className="flex gap-4">
-                <Button type="submit" disabled={saveMutation.isPending}>
-                  {saveMutation.isPending && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  {editingPost ? "Update Post" : "Create Post"}
-                </Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
-                </Button>
-              </div>
-            </form>
-          </div>
-        ) : (
-          <div className="animate-fade-in">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-xl font-semibold">Posts</h2>
-              <Button onClick={() => setShowEditor(true)}>
-                <Plus className="mr-2 h-4 w-4" />
-                New Post
-              </Button>
-            </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="published"
+                      checked={formData.published}
+                      onCheckedChange={(checked) => 
+                        setFormData({ ...formData, published: checked })
+                      }
+                    />
+                    <Label htmlFor="published">Published</Label>
+                  </div>
 
-            {loadingPosts ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-              </div>
-            ) : posts && posts.length > 0 ? (
-              <div className="border border-border rounded-lg overflow-hidden">
-                <table className="w-full">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="text-left text-sm font-medium px-4 py-3">Title</th>
-                      <th className="text-left text-sm font-medium px-4 py-3 hidden md:table-cell">Status</th>
-                      <th className="text-left text-sm font-medium px-4 py-3 hidden sm:table-cell">Date</th>
-                      <th className="text-right text-sm font-medium px-4 py-3">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {posts.map((post) => (
-                      <tr key={post.id} className="hover:bg-muted/30 transition-colors">
-                        <td className="px-4 py-3">
-                          <span className="font-medium">{post.title}</span>
-                        </td>
-                        <td className="px-4 py-3 hidden md:table-cell">
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            post.published 
-                              ? "bg-primary/10 text-primary" 
-                              : "bg-muted text-muted-foreground"
-                          }`}>
-                            {post.published ? "Published" : "Draft"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-muted-foreground hidden sm:table-cell">
-                          {new Date(post.created_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center justify-end gap-2">
-                            {post.published && (
-                              <Link to={`/post/${post.slug}`} target="_blank">
-                                <Button variant="ghost" size="sm">
-                                  <Eye className="h-4 w-4" />
-                                </Button>
-                              </Link>
-                            )}
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleEdit(post)}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => {
-                                if (confirm("Delete this post?")) {
-                                  deleteMutation.mutate(post.id);
-                                }
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                  <div className="flex gap-4">
+                    <Button type="submit" disabled={saveMutation.isPending}>
+                      {saveMutation.isPending && (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      )}
+                      {editingPost ? "Update Post" : "Create Post"}
+                    </Button>
+                    <Button type="button" variant="outline" onClick={resetForm}>
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
               </div>
             ) : (
-              <div className="text-center py-12 border border-dashed border-border rounded-lg">
-                <p className="text-muted-foreground mb-4">No posts yet</p>
-                <Button onClick={() => setShowEditor(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create your first post
-                </Button>
+              <div className="animate-fade-in">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-xl font-semibold">Posts</h2>
+                  <Button onClick={() => setShowEditor(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Post
+                  </Button>
+                </div>
+
+                {loadingPosts ? (
+                  <div className="flex items-center justify-center py-12">
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  </div>
+                ) : posts && posts.length > 0 ? (
+                  <div className="border border-border rounded-lg overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-muted/50">
+                        <tr>
+                          <th className="text-left text-sm font-medium px-4 py-3">Title</th>
+                          <th className="text-left text-sm font-medium px-4 py-3 hidden md:table-cell">Status</th>
+                          <th className="text-left text-sm font-medium px-4 py-3 hidden sm:table-cell">Date</th>
+                          <th className="text-right text-sm font-medium px-4 py-3">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {posts.map((post) => (
+                          <tr key={post.id} className="hover:bg-muted/30 transition-colors">
+                            <td className="px-4 py-3">
+                              <span className="font-medium">{post.title}</span>
+                            </td>
+                            <td className="px-4 py-3 hidden md:table-cell">
+                              <span className={`text-xs px-2 py-1 rounded ${
+                                post.published 
+                                  ? "bg-primary/10 text-primary" 
+                                  : "bg-muted text-muted-foreground"
+                              }`}>
+                                {post.published ? "Published" : "Draft"}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-sm text-muted-foreground hidden sm:table-cell">
+                              {new Date(post.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center justify-end gap-2">
+                                {post.published && (
+                                  <Link to={`/post/${post.slug}`} target="_blank">
+                                    <Button variant="ghost" size="sm">
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </Link>
+                                )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleEdit(post)}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => {
+                                    if (confirm("Delete this post?")) {
+                                      deleteMutation.mutate(post.id);
+                                    }
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <div className="text-center py-12 border border-dashed border-border rounded-lg">
+                    <p className="text-muted-foreground mb-4">No posts yet</p>
+                    <Button onClick={() => setShowEditor(true)}>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Create your first post
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
-          </div>
-        )}
+          </TabsContent>
+
+          <TabsContent value="announcements">
+            <AnnouncementManager />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
