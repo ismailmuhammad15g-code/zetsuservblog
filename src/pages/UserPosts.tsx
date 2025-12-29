@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { notifyAllUsersNewPost } from "@/hooks/useSendPushNotification";
 import { 
   Loader2, Plus, Edit, Trash2, Eye, EyeOff, Image as ImageIcon, 
   ArrowLeft, X, FileText, Clock, Calendar, BarChart3, Sparkles,
@@ -220,8 +221,16 @@ export default function UserPosts() {
 
     setSaving(true);
     try {
+      const slug = generateSlug(title);
+      const isNewPost = !editingPost;
+      const isPublishing = published;
+      
       if (editingPost) {
-        const { error } = await supabase
+        // Check if we're publishing an existing draft
+        const wasUnpublished = !editingPost.published;
+        const isNowPublishing = isPublishing && wasUnpublished;
+        
+        const { data: updatedPost, error } = await supabase
           .from("posts")
           .update({
             title,
@@ -230,26 +239,52 @@ export default function UserPosts() {
             cover_image: coverImage,
             published,
           })
-          .eq("id", editingPost.id);
+          .eq("id", editingPost.id)
+          .select()
+          .single();
 
         if (error) throw error;
         toast({ title: "Post updated!" });
+        
+        // Send push notification if publishing a draft
+        if (isNowPublishing && updatedPost) {
+          notifyAllUsersNewPost({
+            title: updatedPost.title,
+            excerpt: updatedPost.excerpt,
+            content: updatedPost.content,
+            slug: updatedPost.slug,
+            id: updatedPost.id,
+          });
+        }
       } else {
-        const { error } = await supabase
+        const { data: newPost, error } = await supabase
           .from("posts")
           .insert({
             title,
-            slug: generateSlug(title),
+            slug,
             content,
             excerpt: excerpt || null,
             cover_image: coverImage,
             published,
             user_id: user.id,
             author_name: profile?.full_name || user.email?.split("@")[0] || "Anonymous",
-          });
+          })
+          .select()
+          .single();
 
         if (error) throw error;
         toast({ title: "Post created!" });
+        
+        // Send push notification if publishing immediately
+        if (isPublishing && newPost) {
+          notifyAllUsersNewPost({
+            title: newPost.title,
+            excerpt: newPost.excerpt,
+            content: newPost.content,
+            slug: newPost.slug,
+            id: newPost.id,
+          });
+        }
       }
 
       if (profile) await fetchPosts(profile.id);
