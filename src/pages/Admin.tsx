@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
 import { CategoryManager } from "@/components/admin/CategoryManager";
+import { notifyAllUsersNewPost } from "@/hooks/useSendPushNotification";
 import { 
   Loader2, 
   LogOut, 
@@ -130,9 +131,18 @@ export default function Admin() {
   const saveMutation = useMutation({
     mutationFn: async (data: typeof formData & { id?: string }) => {
       const scheduledAt = data.scheduled_at ? new Date(data.scheduled_at).toISOString() : null;
+      const isNewPost = !data.id;
+      const isPublishing = data.published && !scheduledAt;
+      
+      let savedPost: Post | null = null;
       
       if (data.id) {
-        const { error } = await supabase
+        // Check if we're publishing an existing unpublished post
+        const existingPost = posts?.find(p => p.id === data.id);
+        const wasUnpublished = existingPost && !existingPost.published;
+        const isNowPublishing = isPublishing && wasUnpublished;
+        
+        const { data: updatedData, error } = await supabase
           .from("posts")
           .update({
             title: data.title,
@@ -143,11 +153,17 @@ export default function Admin() {
             published: scheduledAt ? false : data.published,
             scheduled_at: scheduledAt,
           })
-          .eq("id", data.id);
+          .eq("id", data.id)
+          .select()
+          .single();
 
         if (error) throw error;
+        
+        if (isNowPublishing && updatedData) {
+          savedPost = updatedData as Post;
+        }
       } else {
-        const { error } = await supabase.from("posts").insert({
+        const { data: insertedData, error } = await supabase.from("posts").insert({
           title: data.title,
           slug: data.slug,
           excerpt: data.excerpt || null,
@@ -155,9 +171,24 @@ export default function Admin() {
           cover_image: data.cover_image || null,
           published: scheduledAt ? false : data.published,
           scheduled_at: scheduledAt,
-        });
+        }).select().single();
 
         if (error) throw error;
+        
+        if (isPublishing && insertedData) {
+          savedPost = insertedData as Post;
+        }
+      }
+      
+      // Send push notification if publishing a new post
+      if (savedPost && isPublishing) {
+        notifyAllUsersNewPost({
+          title: savedPost.title,
+          excerpt: savedPost.excerpt,
+          content: savedPost.content,
+          slug: savedPost.slug,
+          id: savedPost.id,
+        });
       }
     },
     onSuccess: () => {
