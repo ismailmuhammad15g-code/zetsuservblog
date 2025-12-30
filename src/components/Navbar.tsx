@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, Settings, Shield, FileText, Bookmark, Users } from "lucide-react";
+import { Menu, X, LogOut, LayoutDashboard, Settings, Shield, FileText, Bookmark, Users, TrendingUp } from "lucide-react";
 import { NotificationBell } from "@/components/NotificationBell";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -105,6 +105,14 @@ export function Navbar() {
             }`}
           >
             Blog
+          </Link>
+          <Link
+            to="/explore"
+            className={`text-sm transition-colors ${
+              isActive("/explore") ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Explore
           </Link>
           <Link
             to="/community"
@@ -221,6 +229,16 @@ export function Navbar() {
               onClick={() => setIsOpen(false)}
             >
               Blog
+            </Link>
+            <Link
+              to="/explore"
+              className={`text-sm py-2 transition-colors flex items-center gap-2 ${
+                isActive("/explore") ? "text-foreground" : "text-muted-foreground"
+              }`}
+              onClick={() => setIsOpen(false)}
+            >
+              <TrendingUp className="h-4 w-4" />
+              Explore
             </Link>
             <Link
               to="/community"
