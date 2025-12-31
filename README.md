@@ -1,73 +1,123 @@
-# Welcome to your Lovable project
+# ZetsuServ Blog
 
-## Project info
+A modern, feature-rich technical blog platform built for developers and tech enthusiasts. Share your knowledge, explore tutorials, and connect with a community of like-minded individuals.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+![React](https://img.shields.io/badge/React-18.3-61DAFB?style=flat&logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?style=flat&logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=flat&logo=vite&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?style=flat&logo=supabase&logoColor=white)
 
-## How can I edit this code?
+## ✨ Features
 
-There are several ways of editing your application.
+- **📝 Rich Content Management** - Create, edit, and publish blog posts with Markdown support
+- **🔐 User Authentication** - Secure registration and login powered by Supabase
+- **👥 Community Posts** - Users can contribute their own technical articles
+- **📌 Pinned & Official Posts** - Highlight important announcements from administrators
+- **🏷️ Categories & Tags** - Organize content with customizable categories
+- **🔍 Search & Filter** - Powerful search functionality to find relevant content
+- **💬 Comments System** - Engage with readers through post comments
+- **🔖 Bookmarks** - Save favorite posts for later reading
+- **📊 View Counts** - Track post popularity
+- **🎨 Modern UI** - Clean, responsive design with shadcn/ui components
+- **🌙 Smooth Animations** - Beautiful transitions and scroll effects
+- **📱 Mobile Responsive** - Optimized for all device sizes
 
-**Use Lovable**
+## 🛠️ Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+| Category | Technologies |
+|----------|-------------|
+| **Frontend** | React 18, TypeScript |
+| **Build Tool** | Vite |
+| **Styling** | Tailwind CSS, shadcn/ui |
+| **Backend** | Supabase (Authentication, Database, Storage) |
+| **State Management** | TanStack Query (React Query) |
+| **Routing** | React Router DOM |
+| **Forms** | React Hook Form, Zod |
+| **Charts** | Recharts |
+| **Icons** | Lucide React |
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🚀 Getting Started
 
-**Use your preferred IDE**
+### Prerequisites
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- Node.js 18+ and npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- A Supabase project (for backend services)
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+### Installation
 
-Follow these steps:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/ismailmuhammad15g-code/zetsuservblog.git
+   cd zetsuservblog
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+3. **Set up environment variables**
+   
+   Create a `.env` file in the root directory with your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+4. **Start the development server**
+   ```bash
+   npm run dev
+   ```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+5. Open your browser and navigate to `http://localhost:5173`
+
+### Available Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Start development server |
+| `npm run build` | Build for production |
+| `npm run build:dev` | Build for development |
+| `npm run preview` | Preview production build |
+| `npm run lint` | Run ESLint |
+
+## 📁 Project Structure
+
+```
+zetsuservblog/
+├── public/              # Static assets
+├── src/
+│   ├── components/      # Reusable UI components
+│   │   ├── ui/          # shadcn/ui components
+│   │   └── admin/       # Admin panel components
+│   ├── hooks/           # Custom React hooks
+│   ├── integrations/    # Third-party integrations (Supabase)
+│   ├── lib/             # Utility functions
+│   ├── pages/           # Page components
+│   ├── App.tsx          # Main application component
+│   └── main.tsx         # Application entry point
+├── supabase/            # Supabase configuration
+└── ...config files
 ```
 
-**Edit a file directly in GitHub**
+## 🤝 Contributing
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Contributions are welcome! Feel free to:
 
-**Use GitHub Codespaces**
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 📄 License
 
-## What technologies are used for this project?
+This project is open source and available under the [MIT License](LICENSE).
 
-This project is built with:
+---
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+<p align="center">
+  <strong>Created by Ismail Mohammad</strong><br>
+  <em>Built with ❤️ for the developer community</em>
+</p>
