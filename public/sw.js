@@ -1,41 +1,51 @@
 // Service Worker for Push Notifications
+const CACHE_NAME = 'zersu-v1';
+
+// Install event
 self.addEventListener('install', (event) => {
-  console.log('[SW] Service Worker installed');
+  console.log('Service Worker installed');
   self.skipWaiting();
 });
 
+// Activate event
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Service Worker activated');
+  console.log('Service Worker activated');
   event.waitUntil(clients.claim());
 });
 
+// Push notification received
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push event received');
-  
-  let data = { title: 'New Notification', body: 'You have a new notification', url: '/' };
-  
+  console.log('Push received:', event);
+
+  let data = {
+    title: 'Zersu Challenge',
+    body: 'حان وقت التحدي! 🎮',
+    icon: '/favicon.ico',
+    badge: '/favicon.ico'
+  };
+
   if (event.data) {
     try {
       data = event.data.json();
     } catch (e) {
-      console.error('[SW] Error parsing push data:', e);
+      data.body = event.data.text();
     }
   }
 
   const options = {
-    body: data.body || data.message || 'You have a new notification',
-    icon: '/favicon.ico',
-    badge: '/favicon.ico',
-    vibrate: [100, 50, 100],
-    data: {
-      url: data.url || data.link || '/',
-    },
-    actions: [
-      { action: 'open', title: 'Open' },
-      { action: 'close', title: 'Dismiss' },
-    ],
+    body: data.body,
+    icon: data.icon || '/favicon.ico',
+    badge: data.badge || '/favicon.ico',
+    vibrate: [200, 100, 200],
+    tag: 'zersu-notification',
     requireInteraction: true,
-    tag: data.tag || 'notification-' + Date.now(),
+    actions: [
+      { action: 'open', title: 'فتح التحدي 🎯' },
+      { action: 'dismiss', title: 'لاحقاً' }
+    ],
+    data: {
+      url: '/zetsuchallenge/active-tasks'
+    }
   };
 
   event.waitUntil(
@@ -43,26 +53,26 @@ self.addEventListener('push', (event) => {
   );
 });
 
+// Notification click handler
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked');
-  
+  console.log('Notification clicked:', event);
   event.notification.close();
-  
-  if (event.action === 'close') {
+
+  const urlToOpen = event.notification.data?.url || '/zetsuchallenge/active-tasks';
+
+  if (event.action === 'dismiss') {
     return;
   }
 
-  const urlToOpen = event.notification.data?.url || '/';
-
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      // Check if there is already a window/tab open with the target URL
-      for (let client of windowClients) {
-        if (client.url.includes(urlToOpen) && 'focus' in client) {
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Check if there's already an open window
+      for (const client of clientList) {
+        if (client.url.includes('/zetsuchallenge') && 'focus' in client) {
           return client.focus();
         }
       }
-      // If not, open a new window
+      // Open new window
       if (clients.openWindow) {
         return clients.openWindow(urlToOpen);
       }
@@ -70,20 +80,14 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-self.addEventListener('pushsubscriptionchange', (event) => {
-  console.log('[SW] Push subscription changed');
-  // Handle subscription change - resubscribe
-  event.waitUntil(
-    self.registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: event.oldSubscription?.options?.applicationServerKey
-    }).then((subscription) => {
-      // Send new subscription to server
-      return fetch('/api/push-subscription', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subscription)
-      });
-    })
-  );
+// Background sync for scheduled notifications
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'check-scheduled-tasks') {
+    event.waitUntil(checkScheduledTasks());
+  }
 });
+
+async function checkScheduledTasks() {
+  // This would ideally check with the server for any due tasks
+  console.log('Checking scheduled tasks...');
+}

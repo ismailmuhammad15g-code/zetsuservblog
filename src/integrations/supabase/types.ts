@@ -167,6 +167,222 @@ export type Database = {
           },
         ]
       }
+      game_profiles: {
+        Row: {
+          user_id: string
+          zcoins: number
+          server_region: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          zcoins?: number
+          server_region?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          zcoins?: number
+          server_region?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      game_sessions: {
+        Row: {
+          id: string
+          invite_code: string
+          host_id: string
+          guest_id: string | null
+          status: string
+          created_at: string
+          start_time: string | null
+          end_time: string | null
+          host_score: number
+          guest_score: number
+        }
+        Insert: {
+          id?: string
+          invite_code: string
+          host_id: string
+          guest_id?: string | null
+          status?: string
+          created_at?: string
+          start_time?: string | null
+          end_time?: string | null
+          host_score?: number
+          guest_score?: number
+        }
+        Update: {
+          id?: string
+          invite_code?: string
+          host_id?: string
+          guest_id?: string | null
+          status?: string
+          created_at?: string
+          start_time?: string | null
+          end_time?: string | null
+          host_score?: number
+          guest_score?: number
+        }
+        Relationships: []
+      }
+      player_challenges: {
+        Row: {
+          id: string
+          user_id: string
+          challenge_id: string
+          status: string
+          proof_url: string | null
+          reward_claimed: number
+          created_at: string
+          completed_at: string | null
+          failed_at: string | null
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          challenge_id: string
+          status?: string
+          proof_url?: string | null
+          reward_claimed?: number
+          created_at?: string
+          completed_at?: string | null
+          failed_at?: string | null
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          challenge_id?: string
+          status?: string
+          proof_url?: string | null
+          reward_claimed?: number
+          created_at?: string
+          completed_at?: string | null
+          failed_at?: string | null
+        }
+        Relationships: []
+      }
+      challenges: {
+        Row: {
+          id: string
+          title: string
+          title_ar: string | null
+          description: string
+          description_ar: string | null
+          cost: number
+          reward: number
+          failure_penalty: number
+          difficulty: string
+          verification_type: string
+          time_limit: string | null
+          icon: string | null
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id: string
+          title: string
+          title_ar?: string | null
+          description: string
+          description_ar?: string | null
+          cost?: number
+          reward?: number
+          failure_penalty?: number
+          difficulty: string
+          verification_type: string
+          time_limit?: string | null
+          icon?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          title_ar?: string | null
+          description?: string
+          description_ar?: string | null
+          cost?: number
+          reward?: number
+          failure_penalty?: number
+          difficulty?: string
+          verification_type?: string
+          time_limit?: string | null
+          icon?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      game_servers: {
+        Row: {
+          id: string
+          name: string
+          region: string
+          region_ar: string | null
+          location_x: number
+          location_y: number
+          ping: number
+          player_count: number
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id: string
+          name: string
+          region: string
+          region_ar?: string | null
+          location_x?: number
+          location_y?: number
+          ping?: number
+          player_count?: number
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          region?: string
+          region_ar?: string | null
+          location_x?: number
+          location_y?: number
+          ping?: number
+          player_count?: number
+          status?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      game_stats: {
+        Row: {
+          id: string
+          total_players: number
+          active_players: number
+          total_challenges_completed: number
+          total_zcoins_earned: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          total_players?: number
+          active_players?: number
+          total_challenges_completed?: number
+          total_zcoins_earned?: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          total_players?: number
+          active_players?: number
+          total_challenges_completed?: number
+          total_zcoins_earned?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       likes: {
         Row: {
           created_at: string
@@ -501,6 +717,13 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_zcoins: {
+        Args: {
+          amount: number
+          user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "user"
@@ -508,6 +731,8 @@ export type Database = {
     CompositeTypes: {
       [_ in never]: never
     }
+
+
   }
 }
 
@@ -517,116 +742,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    DefaultSchema["Views"])
+  ? (DefaultSchema["Tables"] &
+    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Enums"]
+  | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["CompositeTypes"]
+  | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never
 
 export const Constants = {
   public: {

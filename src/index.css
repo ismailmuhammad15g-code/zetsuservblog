@@ -43,7 +43,7 @@
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
     --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
-    
+
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
@@ -85,7 +85,7 @@
 
     --glass-bg: 0 0% 6% / 0.9;
     --glass-border: 0 0% 20% / 0.5;
-    
+
     --sidebar-background: 0 0% 6%;
     --sidebar-foreground: 0 0% 84%;
     --sidebar-primary: 0 0% 98%;
@@ -146,6 +146,7 @@
   0% {
     transform: translateX(0%);
   }
+
   100% {
     transform: translateX(-50%);
   }
@@ -155,6 +156,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -165,6 +167,7 @@
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -176,6 +179,7 @@
     opacity: 0;
     transform: translateY(-8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -226,7 +230,8 @@
   @apply text-foreground underline underline-offset-4 hover:text-foreground/70 transition-colors;
 }
 
-.prose-custom ul, .prose-custom ol {
+.prose-custom ul,
+.prose-custom ol {
   @apply my-4 pl-6;
 }
 

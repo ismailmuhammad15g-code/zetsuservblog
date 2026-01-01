@@ -7,6 +7,8 @@ import { PostCard } from "@/components/PostCard";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
 import { Loader2, TrendingUp, Clock, Sparkles, Crown, Users, ArrowRight, Pin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import MiniChallengeBanner from "@/components/zersu-game/MiniChallengeBanner";
+import { HeaderAd, InContentAd, SidebarAd } from "@/components/ads";
 
 type SortOption = "latest" | "popular" | "trending";
 
@@ -59,22 +61,22 @@ export default function Index() {
   // Separate admin posts from community posts, with pinned posts first
   const { pinnedPosts, adminPosts, communityPosts } = useMemo(() => {
     if (!posts) return { pinnedPosts: [], adminPosts: [], communityPosts: [] };
-    
+
     // Pinned posts always first (sorted by pinned_at)
     const pinned = posts
       .filter(post => post.is_pinned)
       .sort((a, b) => new Date(b.pinned_at || 0).getTime() - new Date(a.pinned_at || 0).getTime());
-    
+
     // Admin posts (excluding pinned)
-    const admins = posts.filter(post => 
+    const admins = posts.filter(post =>
       !post.is_pinned && post.user_id && adminIds.includes(post.user_id)
     );
-    
+
     // Community posts (excluding pinned)
-    const community = posts.filter(post => 
+    const community = posts.filter(post =>
       !post.is_pinned && (!post.user_id || !adminIds.includes(post.user_id))
     );
-    
+
     return { pinnedPosts: pinned, adminPosts: admins, communityPosts: community };
   }, [posts, adminIds]);
 
@@ -129,7 +131,7 @@ export default function Index() {
             ZetsuServ Blog
           </h1>
           <p className="text-muted-foreground max-w-lg">
-            A collection of thoughts, tutorials, and technical explorations. 
+            A collection of thoughts, tutorials, and technical explorations.
             Written with clarity and purpose.
           </p>
         </header>
@@ -140,6 +142,11 @@ export default function Index() {
           onCategoryFilter={setSelectedCategory}
           selectedCategory={selectedCategory}
         />
+
+        {/* Header Ad - Desktop Only */}
+        <HeaderAd className="my-6" />
+
+        <MiniChallengeBanner />
 
         <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2">
           <span className="text-sm text-muted-foreground shrink-0">Sort by:</span>

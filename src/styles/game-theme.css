@@ -1,0 +1,281 @@
+/* Zersu Game Theme - AAA Quality */
+
+/* Base dark theme variables */
+.dark-theme {
+  --game-bg-primary: #0a0e17;
+  --game-bg-secondary: #111827;
+  --game-accent-purple: #a855f7;
+  --game-accent-pink: #ec4899;
+  --game-accent-cyan: #06b6d4;
+  --game-text-primary: #ffffff;
+  --game-text-secondary: #9ca3af;
+}
+
+/* Animations */
+@keyframes gradient-x {
+
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(168, 85, 247, 0.6);
+  }
+}
+
+@keyframes shake {
+
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  25% {
+    transform: translateX(-5px) rotate(-1deg);
+  }
+
+  75% {
+    transform: translateX(5px) rotate(1deg);
+  }
+}
+
+@keyframes scan {
+
+  0%,
+  100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+
+  50% {
+    transform: translateY(100%);
+    opacity: 0.5;
+  }
+}
+
+/* Utility classes */
+.animate-gradient-x {
+  background-size: 200% 200%;
+  animation: gradient-x 3s ease infinite;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.shake-animation {
+  animation: shake 0.5s ease-in-out;
+}
+
+/* Game button styles */
+.game-button {
+  position: relative;
+  padding: 0.75rem 1.5rem;
+  font-weight: 700;
+  color: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  transition: all 300ms;
+  background: linear-gradient(135deg, var(--game-accent-purple), var(--game-accent-pink));
+}
+
+.game-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 30px rgba(168, 85, 247, 0.4);
+}
+
+.game-button:active {
+  transform: scale(0.98);
+}
+
+.game-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Server button styles */
+.server-button {
+  padding: 1rem 1.5rem;
+  background-color: rgba(30, 41, 59, 0.8);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+  border-radius: 0.75rem;
+  font-weight: 700;
+  color: white;
+  transition: all 300ms;
+}
+
+.server-button:hover {
+  background-color: rgb(51, 65, 85);
+  border-color: rgb(34, 211, 238);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 0 20px rgba(6, 182, 212, 0.3);
+}
+
+.server-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Game login overlay */
+.game-login-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+/* Confirmation modal */
+.confirmation-modal {
+  background-color: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(24px);
+  padding: 2rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(168, 85, 247, 0.3);
+  max-width: 32rem;
+  text-align: center;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Server selection */
+.server-selection {
+  padding: 2rem;
+  border-radius: 1rem;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+  backdrop-filter: blur(24px);
+}
+
+/* Card glow effects */
+.card-glow-purple {
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.2),
+    inset 0 0 30px rgba(168, 85, 247, 0.05);
+}
+
+.card-glow-cyan {
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.2),
+    inset 0 0 30px rgba(6, 182, 212, 0.05);
+}
+
+/* Glassmorphism effects */
+.glass-dark {
+  background-color: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Text effects */
+.text-glow-purple {
+  text-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+}
+
+.text-glow-cyan {
+  text-shadow: 0 0 20px rgba(6, 182, 212, 0.5);
+}
+
+/* Custom scrollbar for game elements */
+.game-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.game-scrollbar::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.game-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, var(--game-accent-purple), var(--game-accent-pink));
+  border-radius: 4px;
+}
+
+.game-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--game-accent-purple);
+}
+
+/* ZCoin display */
+.zcoin-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Challenge card hover effects */
+.challenge-card {
+  transition: all 0.3s ease;
+}
+
+.challenge-card:hover {
+  transform: translateY(-4px);
+}
+
+/* Responsive font for Arabic */
+.font-orbitron {
+  font-family: 'Orbitron', 'Cairo', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+/* Custom Scrollbar - AAA Quality */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #a855f7 rgba(0, 0, 0, 0.3);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: linear-gradient(180deg, rgba(10, 14, 23, 0.8) 0%, rgba(30, 20, 50, 0.8) 100%);
+  border-radius: 10px;
+  border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #a855f7 0%, #ec4899 50%, #a855f7 100%);
+  border-radius: 10px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 10px rgba(168, 85, 247, 0.5), inset 0 0 5px rgba(255, 255, 255, 0.2);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #c084fc 0%, #f472b6 50%, #c084fc 100%);
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(180deg, #9333ea 0%, #db2777 50%, #9333ea 100%);
+}
+
+.custom-scrollbar::-webkit-scrollbar-corner {
+  background: transparent;
+}

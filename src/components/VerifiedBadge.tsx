@@ -17,7 +17,7 @@ export const VerifiedBadge = forwardRef<HTMLSpanElement, VerifiedBadgeProps>(
             </span>
           </TooltipTrigger>
           <TooltipContent>
-            <p className="text-xs">Verified Admin</p>
+            <p className="text-xs">Verified Account</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>

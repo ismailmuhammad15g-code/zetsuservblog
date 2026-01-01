@@ -14,7 +14,7 @@ export function PostLikes({ postId }: PostLikesProps) {
   const [user, setUser] = useState<User | null>(null);
   const [liked, setLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(0);
-  const [animating, setAnimating] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function PostLikes({ postId }: PostLikesProps) {
 
     if (!error && data) {
       setLikesCount(data.length);
-      
+
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setLiked(data.some(like => like.user_id === session.user.id));
@@ -57,12 +57,12 @@ export function PostLikes({ postId }: PostLikesProps) {
 
       if (!error) {
         setLiked(false);
-        setLikesCount(prev => prev - 1);
+        setLikesCount(prev => Math.max(0, prev - 1));
       }
     } else {
       // Like with animation
-      setAnimating(true);
-      
+      setIsAnimating(true);
+
       const { error } = await supabase
         .from("likes")
         .insert({ post_id: postId, user_id: user.id });
@@ -71,11 +71,10 @@ export function PostLikes({ postId }: PostLikesProps) {
         setLiked(true);
         setLikesCount(prev => prev + 1);
       } else if (error.code === "23505") {
-        // Already liked (unique constraint violation)
         setLiked(true);
       }
-      
-      setTimeout(() => setAnimating(false), 600);
+
+      setTimeout(() => setIsAnimating(false), 400);
     }
   };
 
@@ -84,39 +83,42 @@ export function PostLikes({ postId }: PostLikesProps) {
       variant="ghost"
       size="sm"
       className={cn(
-        "gap-2 transition-all",
-        liked && "text-red-500 hover:text-red-600"
+        "group gap-2 px-3 py-2 rounded-full transition-all duration-300",
+        "hover:bg-rose-500/10 dark:hover:bg-rose-500/20",
+        liked
+          ? "text-rose-500 hover:text-rose-600"
+          : "text-muted-foreground hover:text-rose-500"
       )}
       onClick={handleLike}
     >
-      <div className="relative">
-        <Heart 
+      <div className="relative flex items-center justify-center">
+        <Heart
           className={cn(
-            "h-5 w-5 transition-all",
-            liked && "fill-current",
-            animating && "animate-ping absolute"
-          )} 
+            "h-5 w-5 transition-all duration-300 ease-out",
+            liked && "fill-rose-500 text-rose-500 scale-110",
+            isAnimating && "scale-125",
+            !liked && "group-hover:scale-110"
+          )}
         />
-        {animating && (
-          <>
-            <Heart className="h-5 w-5 fill-red-500 text-red-500" />
-            <div className="absolute inset-0 flex items-center justify-center">
-              {[...Array(6)].map((_, i) => (
-                <span 
-                  key={i}
-                  className="absolute w-1 h-1 bg-red-500 rounded-full animate-[particle_0.6s_ease-out_forwards]"
-                  style={{
-                    transform: `rotate(${i * 60}deg) translateY(-8px)`,
-                    animationDelay: `${i * 0.05}s`
-                  }}
-                />
-              ))}
-            </div>
-          </>
+
+        {/* Pulse effect on like */}
+        {isAnimating && (
+          <span
+            className="absolute inset-0 rounded-full bg-rose-500/30 animate-ping"
+            style={{ animationDuration: '0.4s' }}
+          />
         )}
-        {!animating && <Heart className={cn("h-5 w-5", liked && "fill-current")} />}
       </div>
-      <span>{likesCount}</span>
+
+      <span
+        className={cn(
+          "text-sm font-medium transition-all duration-300",
+          liked && "text-rose-500",
+          isAnimating && "scale-110"
+        )}
+      >
+        {likesCount}
+      </span>
     </Button>
   );
 }

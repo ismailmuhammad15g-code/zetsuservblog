@@ -6,7 +6,7 @@ let cachedVapidKey: string | null = null;
 
 async function getVapidPublicKey(): Promise<string | null> {
   if (cachedVapidKey) return cachedVapidKey;
-  
+
   try {
     const { data, error } = await supabase.functions.invoke("get-vapid-key");
     if (error) {
@@ -64,7 +64,7 @@ export function usePushNotifications() {
         console.log("[Push] No registration found, registering...");
         registration = await registerServiceWorker();
       }
-      
+
       if (registration) {
         await navigator.serviceWorker.ready;
         const subscription = await registration.pushManager.getSubscription();
@@ -86,18 +86,18 @@ export function usePushNotifications() {
       if (supported) {
         setPermission(Notification.permission);
         console.log("[Push] Current permission:", Notification.permission);
-        
+
         // Fetch VAPID key first
         const key = await getVapidPublicKey();
         console.log("[Push] VAPID key fetched:", !!key);
         setVapidKey(key);
-        
+
         // Then check existing subscription
         await checkExistingSubscription();
       }
       setInitLoading(false);
     };
-    
+
     init();
   }, [checkExistingSubscription]);
 
@@ -210,6 +210,11 @@ export function usePushNotifications() {
 
       return true;
     } catch (error: any) {
+      if (error?.name === 'AbortError') {
+        // Completely silent - no console output, no toast
+        return false;
+      }
+
       console.error("Error subscribing to push notifications:", error);
       toast({
         title: "Subscription Failed",

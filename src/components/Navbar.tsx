@@ -64,7 +64,7 @@ export function Navbar() {
       .from("user_roles")
       .select("role")
       .eq("user_id", userId);
-    
+
     setIsAdmin(data?.some(r => r.role === "admin") ?? false);
   };
 
@@ -74,7 +74,7 @@ export function Navbar() {
       .select("avatar_url, full_name, username")
       .eq("id", userId)
       .maybeSingle();
-    
+
     setProfile(data);
   };
 
@@ -89,8 +89,8 @@ export function Navbar() {
   return (
     <header className="glass-nav border-b border-border/50">
       <nav className="container flex items-center justify-between h-16">
-        <Link 
-          to="/" 
+        <Link
+          to="/"
           className="text-lg font-semibold tracking-tight hover:opacity-70 transition-opacity"
         >
           ZetsuServ
@@ -100,100 +100,103 @@ export function Navbar() {
         <div className="hidden md:flex items-center gap-8">
           <Link
             to="/"
-            className={`text-sm transition-colors ${
-              isActive("/") ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`text-sm transition-colors ${isActive("/") ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             Blog
           </Link>
           <Link
             to="/explore"
-            className={`text-sm transition-colors ${
-              isActive("/explore") ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`text-sm transition-colors ${isActive("/explore") ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             Explore
           </Link>
           <Link
             to="/community"
-            className={`text-sm transition-colors ${
-              isActive("/community") ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`text-sm transition-colors ${isActive("/community") ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             Community
           </Link>
           <Link
             to="/about"
-            className={`text-sm transition-colors ${
-              isActive("/about") ? "text-foreground" : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`text-sm transition-colors ${isActive("/about") ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             About
           </Link>
-          
+          <Link
+            to="/zetsuchallenge"
+            className={`text-sm transition-colors text-purple-500 font-bold hover:text-purple-600 animate-pulse ${isActive("/zetsuchallenge") ? "text-purple-600" : ""
+              }`}
+          >
+            Challenges ⚔️
+          </Link>
+
           {user ? (
             <div className="flex items-center gap-2">
               <NotificationBell />
               <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-9 gap-2 px-2">
-                  <Avatar className="h-7 w-7">
-                    <AvatarImage src={profile?.avatar_url || ""} />
-                    <AvatarFallback className="text-xs">
-                      {profile?.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="max-w-[100px] truncate text-xs">
-                    {profile?.full_name || user.email?.split("@")[0]}
-                  </span>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-9 gap-2 px-2">
+                    <Avatar className="h-7 w-7">
+                      <AvatarImage src={profile?.avatar_url || ""} />
+                      <AvatarFallback className="text-xs">
+                        {profile?.full_name?.charAt(0) || user.email?.charAt(0)?.toUpperCase() || "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="max-w-[100px] truncate text-xs">
+                      {profile?.full_name || user.email?.split("@")[0]}
+                    </span>
+                    {isAdmin && (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 gap-1">
+                        <Shield className="h-2.5 w-2.5" />
+                        Admin
+                      </Badge>
+                    )}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
                   {isAdmin && (
-                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 gap-1">
-                      <Shield className="h-2.5 w-2.5" />
-                      Admin
-                    </Badge>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
+                          <LayoutDashboard className="h-4 w-4" />
+                          Dashboard
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                    </>
                   )}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {isAdmin && (
-                  <>
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin" className="flex items-center gap-2 cursor-pointer">
-                        <LayoutDashboard className="h-4 w-4" />
-                        Dashboard
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                  </>
-                )}
-                <DropdownMenuItem asChild>
-                  <Link to={myPostsPath} className="flex items-center gap-2 cursor-pointer">
-                    <FileText className="h-4 w-4" />
-                    My Posts
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/bookmarks" className="flex items-center gap-2 cursor-pointer">
-                    <Bookmark className="h-4 w-4" />
-                    Saved Posts
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
-                    <Settings className="h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 cursor-pointer text-destructive"
-                >
-                  <LogOut className="h-4 w-4" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem asChild>
+                    <Link to={myPostsPath} className="flex items-center gap-2 cursor-pointer">
+                      <FileText className="h-4 w-4" />
+                      My Posts
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/bookmarks" className="flex items-center gap-2 cursor-pointer">
+                      <Bookmark className="h-4 w-4" />
+                      Saved Posts
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
+                      <Settings className="h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="flex items-center gap-2 cursor-pointer text-destructive"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           ) : (
             <Link to="/auth">
@@ -212,7 +215,7 @@ export function Navbar() {
             onClick={() => setIsOpen(!isOpen)}
             aria-label="Toggle menu"
           >
-          {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {isOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </div>
       </nav>
@@ -223,18 +226,16 @@ export function Navbar() {
           <div className="container py-4 flex flex-col gap-4">
             <Link
               to="/"
-              className={`text-sm py-2 transition-colors ${
-                isActive("/") ? "text-foreground" : "text-muted-foreground"
-              }`}
+              className={`text-sm py-2 transition-colors ${isActive("/") ? "text-foreground" : "text-muted-foreground"
+                }`}
               onClick={() => setIsOpen(false)}
             >
               Blog
             </Link>
             <Link
               to="/explore"
-              className={`text-sm py-2 transition-colors flex items-center gap-2 ${
-                isActive("/explore") ? "text-foreground" : "text-muted-foreground"
-              }`}
+              className={`text-sm py-2 transition-colors flex items-center gap-2 ${isActive("/explore") ? "text-foreground" : "text-muted-foreground"
+                }`}
               onClick={() => setIsOpen(false)}
             >
               <TrendingUp className="h-4 w-4" />
@@ -242,9 +243,8 @@ export function Navbar() {
             </Link>
             <Link
               to="/community"
-              className={`text-sm py-2 transition-colors flex items-center gap-2 ${
-                isActive("/community") ? "text-foreground" : "text-muted-foreground"
-              }`}
+              className={`text-sm py-2 transition-colors flex items-center gap-2 ${isActive("/community") ? "text-foreground" : "text-muted-foreground"
+                }`}
               onClick={() => setIsOpen(false)}
             >
               <Users className="h-4 w-4" />
@@ -252,14 +252,21 @@ export function Navbar() {
             </Link>
             <Link
               to="/about"
-              className={`text-sm py-2 transition-colors ${
-                isActive("/about") ? "text-foreground" : "text-muted-foreground"
-              }`}
+              className={`text-sm py-2 transition-colors ${isActive("/about") ? "text-foreground" : "text-muted-foreground"
+                }`}
               onClick={() => setIsOpen(false)}
             >
               About
             </Link>
-            
+            <Link
+              to="/zetsuchallenge"
+              className={`text-sm py-2 transition-colors text-purple-500 font-bold flex items-center gap-2 ${isActive("/zetsuchallenge") ? "text-purple-600" : ""
+                }`}
+              onClick={() => setIsOpen(false)}
+            >
+              Challenges ⚔️
+            </Link>
+
             {user ? (
               <>
                 <div className="flex items-center gap-3 py-2 border-t border-border pt-4">
@@ -280,8 +287,8 @@ export function Navbar() {
                   </div>
                 </div>
                 {isAdmin && (
-                  <Link 
-                    to="/admin" 
+                  <Link
+                    to="/admin"
                     onClick={() => setIsOpen(false)}
                     className="text-sm py-2 flex items-center gap-2"
                   >
@@ -289,7 +296,7 @@ export function Navbar() {
                     Dashboard
                   </Link>
                 )}
-                <Link 
+                <Link
                   to={myPostsPath}
                   onClick={() => setIsOpen(false)}
                   className="text-sm py-2 flex items-center gap-2"
@@ -297,7 +304,7 @@ export function Navbar() {
                   <FileText className="h-4 w-4" />
                   My Posts
                 </Link>
-                <Link 
+                <Link
                   to="/bookmarks"
                   onClick={() => setIsOpen(false)}
                   className="text-sm py-2 flex items-center gap-2"
@@ -305,8 +312,8 @@ export function Navbar() {
                   <Bookmark className="h-4 w-4" />
                   Saved Posts
                 </Link>
-                <Link 
-                  to="/settings" 
+                <Link
+                  to="/settings"
                   onClick={() => setIsOpen(false)}
                   className="text-sm py-2 flex items-center gap-2"
                 >

@@ -7,20 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SwipeVerify } from "@/components/SwipeVerify";
 import { useToast } from "@/hooks/use-toast";
-import { 
-  Loader2, 
-  ArrowLeft, 
+import { validateEmail as validateEmailSecurity } from "@/lib/emailValidation";
+import {
+  Loader2,
+  ArrowLeft,
   ArrowRight,
   Mail,
   Lock,
   User,
   CheckCircle2,
   Eye,
-  EyeOff
+  EyeOff,
+  ShieldAlert
 } from "lucide-react";
 import { z } from "zod";
 
-const emailSchema = z.string().email("Please enter a valid email");
 const passwordSchema = z.string()
   .min(8, "Password must be at least 8 characters")
   .regex(/[A-Z]/, "Password must contain an uppercase letter")
@@ -41,7 +42,7 @@ export default function Register() {
   const [isLoading, setIsLoading] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -63,21 +64,24 @@ export default function Register() {
   }, [resendCooldown]);
 
   const validateEmail = () => {
-    try {
-      emailSchema.parse(email);
-      setErrors(prev => ({ ...prev, email: "" }));
-      return true;
-    } catch (e) {
-      if (e instanceof z.ZodError) {
-        setErrors(prev => ({ ...prev, email: e.errors[0].message }));
-      }
+    const validationResult = validateEmailSecurity(email);
+
+    if (!validationResult.isValid) {
+      setErrors(prev => ({
+        ...prev,
+        email: validationResult.error || 'Invalid email address',
+        emailErrorType: validationResult.errorType || 'format'
+      }));
       return false;
     }
+
+    setErrors(prev => ({ ...prev, email: "", emailErrorType: "" }));
+    return true;
   };
 
   const validatePassword = () => {
     const newErrors: Record<string, string> = {};
-    
+
     try {
       passwordSchema.parse(password);
     } catch (e) {
@@ -173,18 +177,26 @@ export default function Register() {
 
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/`,
-          data: {
-            full_name: fullName,
-          },
-        },
+      // 1. Create confirmed user via server function
+      const { data, error: fnError } = await supabase.functions.invoke("verify-otp", {
+        body: {
+          action: "register",
+          email,
+          password,
+          fullName
+        }
       });
 
-      if (error) throw error;
+      if (fnError) throw fnError;
+      if (data?.error) throw new Error(data.error);
+
+      // 2. Sign in immediately
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) throw signInError;
 
       // Set session persistence based on keepSignedIn
       if (!keepSignedIn) {
@@ -239,20 +251,23 @@ export default function Register() {
                   />
                 </div>
                 {errors.email && (
-                  <p className="text-xs text-destructive">{errors.email}</p>
+                  <div className={`flex items-center gap-1.5 text-xs ${errors.emailErrorType === 'disposable' ? 'text-orange-600 dark:text-orange-400' : 'text-destructive'}`}>
+                    {errors.emailErrorType === 'disposable' && <ShieldAlert className="h-3.5 w-3.5" />}
+                    <span>{errors.email}</span>
+                  </div>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label>Verify you are human</Label>
-                <SwipeVerify 
+                <SwipeVerify
                   onVerified={() => setIsHumanVerified(true)}
                   verified={isHumanVerified}
                 />
               </div>
 
-              <Button 
-                onClick={sendOTP} 
+              <Button
+                onClick={sendOTP}
                 className="w-full"
                 disabled={isLoading || !email || !isHumanVerified}
               >
@@ -277,7 +292,7 @@ export default function Register() {
       case "verify":
         return (
           <div className="space-y-6 animate-fade-in">
-            <button 
+            <button
               onClick={() => setStep("email")}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -315,8 +330,8 @@ export default function Register() {
                 )}
               </div>
 
-              <Button 
-                onClick={verifyOTP} 
+              <Button
+                onClick={verifyOTP}
                 className="w-full"
                 disabled={isLoading || otpCode.length !== 6}
               >
@@ -334,8 +349,8 @@ export default function Register() {
                   disabled={resendCooldown > 0 || isLoading}
                   className="text-sm text-muted-foreground hover:text-foreground disabled:opacity-50 transition-colors"
                 >
-                  {resendCooldown > 0 
-                    ? `Resend code in ${resendCooldown}s` 
+                  {resendCooldown > 0
+                    ? `Resend code in ${resendCooldown}s`
                     : "Didn't receive it? Resend code"}
                 </button>
               </div>
@@ -346,7 +361,7 @@ export default function Register() {
       case "details":
         return (
           <div className="space-y-6 animate-fade-in">
-            <button 
+            <button
               onClick={() => setStep("verify")}
               className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
@@ -440,8 +455,8 @@ export default function Register() {
                 </Label>
               </div>
 
-              <Button 
-                onClick={completeRegistration} 
+              <Button
+                onClick={completeRegistration}
                 className="w-full"
                 disabled={isLoading}
               >
@@ -489,7 +504,7 @@ export default function Register() {
     <div className="min-h-screen flex flex-col">
       {/* Progress bar */}
       <div className="fixed top-0 left-0 right-0 h-1 bg-muted">
-        <div 
+        <div
           className="h-full bg-primary transition-all duration-500"
           style={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
         />
@@ -497,13 +512,13 @@ export default function Register() {
 
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-sm">
-          <Link 
-            to="/" 
+          <Link
+            to="/"
             className="flex justify-center mb-8 text-xl font-semibold tracking-tight hover:opacity-70 transition-opacity"
           >
             ZetsuServ
           </Link>
-          
+
           {renderStep()}
         </div>
       </div>
