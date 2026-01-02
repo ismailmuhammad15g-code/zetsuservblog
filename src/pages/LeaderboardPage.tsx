@@ -24,11 +24,11 @@ const LeaderboardPage = () => {
     useEffect(() => {
         const fetchLeaderboard = async () => {
             try {
-                // Fetch game profiles with points (for ranking)
+                // Fetch game profiles - using select('*') to get all columns including points
                 const { data: profiles, error } = await supabase
                     .from('game_profiles')
-                    .select('user_id, points, zcoins, server_region')
-                    .order('points', { ascending: false })
+                    .select('*')
+                    .order('zcoins', { ascending: false }) // Fallback to zcoins if points doesn't exist yet
                     .limit(50);
 
                 if (error) {
@@ -40,19 +40,26 @@ const LeaderboardPage = () => {
                         { user_id: '3', points: 950, zcoins: 95, server_region: 'ASIA', username: 'ZersuSlayer' },
                     ]);
                 } else if (profiles && profiles.length > 0) {
+                    // Cast to any to access dynamic columns
+                    const typedProfiles = profiles as any[];
+
+                    // Sort by points if available, otherwise by zcoins
+                    typedProfiles.sort((a, b) => (b.points || b.zcoins || 0) - (a.points || a.zcoins || 0));
+
                     // Fetch usernames from profiles table
-                    const userIds = profiles.map(p => p.user_id);
+                    const userIds = typedProfiles.map(p => p.user_id);
                     const { data: userProfiles } = await supabase
                         .from('profiles')
                         .select('id, username, avatar_url')
                         .in('id', userIds);
 
-                    const enrichedData = profiles.map(p => {
+                    const enrichedData: LeaderboardEntry[] = typedProfiles.map(p => {
                         const userProfile = userProfiles?.find(up => up.id === p.user_id);
                         return {
-                            ...p,
+                            user_id: p.user_id,
                             points: p.points || 0,
                             zcoins: p.zcoins || 0,
+                            server_region: p.server_region || 'UNKNOWN',
                             username: userProfile?.username || 'مجهول',
                             avatar_url: userProfile?.avatar_url
                         };
@@ -118,8 +125,8 @@ const LeaderboardPage = () => {
                         <button
                             onClick={() => setSelectedTab('rank')}
                             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${selectedTab === 'rank'
-                                    ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black shadow-lg shadow-yellow-500/30'
-                                    : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50'
+                                ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black shadow-lg shadow-yellow-500/30'
+                                : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50'
                                 }`}
                         >
                             <Star className="w-5 h-5" />
@@ -128,8 +135,8 @@ const LeaderboardPage = () => {
                         <button
                             onClick={() => setSelectedTab('level')}
                             className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${selectedTab === 'level'
-                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
-                                    : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50'
+                                ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
+                                : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50'
                                 }`}
                         >
                             <Lock className="w-4 h-4" />
