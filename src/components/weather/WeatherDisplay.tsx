@@ -15,8 +15,7 @@ const WeatherDisplay: React.FC = () => {
     // Derived actual weather based on setting
     const weather = weatherMode === 'auto' ? autoWeather : weatherMode;
 
-    // Audio Refs
-    const rainLoopRef = useRef<HTMLAudioElement | null>(null);
+    // Audio Refs (Wind for Fog)
     const windOscRef = useRef<AudioContext | null>(null);
     const windGainRef = useRef<GainNode | null>(null);
 
@@ -48,22 +47,106 @@ const WeatherDisplay: React.FC = () => {
 
     // ... (Audio logic remains same, just depends on 'weather' derived var) ...
 
-    // Rain Audio Management
+    // Rain Audio Management - Using Web Audio API (like thunder) to avoid autoplay blocking
+    const rainAudioContextRef = useRef<AudioContext | null>(null);
+    const rainNoiseSourceRef = useRef<AudioBufferSourceNode | null>(null);
+    const rainGainNodeRef = useRef<GainNode | null>(null);
+
     useEffect(() => {
-        if (!rainLoopRef.current) {
-            rainLoopRef.current = new Audio('https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg');
-            rainLoopRef.current.loop = true;
+        // Only play rain sound if weather is rain and not muted
+        if (weather !== 'rain' || isMuted) {
+            // Stop rain sound
+            if (rainGainNodeRef.current && rainAudioContextRef.current) {
+                rainGainNodeRef.current.gain.setTargetAtTime(0, rainAudioContextRef.current.currentTime, 0.5);
+            }
+            return;
         }
 
-        const audio = rainLoopRef.current;
-        if (weather === 'rain' && !isMuted) {
-            audio.volume = 0.5 * masterVolume;
-            audio.play().catch(e => console.log("Autoplay blocked (Rain)", e));
-        } else {
-            audio.pause();
+        const initRainSound = async () => {
+            // Check if user has interacted (sound permission granted)
+            const hasPermission = localStorage.getItem('zetsu_sound_permission') === 'accepted';
+            if (!hasPermission) return;
+
+            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+            if (!rainAudioContextRef.current) {
+                rainAudioContextRef.current = new AudioContextClass();
+            }
+            const ctx = rainAudioContextRef.current;
+
+            // Resume if suspended
+            if (ctx.state === 'suspended') {
+                await ctx.resume();
+            }
+
+            // Create rain noise buffer (brown noise filtered for rain-like sound)
+            const bufferSize = 2 * ctx.sampleRate;
+            const noiseBuffer = ctx.createBuffer(2, bufferSize, ctx.sampleRate);
+
+            for (let channel = 0; channel < 2; channel++) {
+                const data = noiseBuffer.getChannelData(channel);
+                let lastOut = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    // Brown noise filter
+                    data[i] = (lastOut + (0.02 * white)) / 1.02;
+                    lastOut = data[i];
+                    data[i] *= 3.5; // Amplify
+                }
+            }
+
+            // Clean up previous source if exists
+            if (rainNoiseSourceRef.current) {
+                rainNoiseSourceRef.current.stop();
+                rainNoiseSourceRef.current.disconnect();
+            }
+
+            // Create audio nodes
+            const noiseSource = ctx.createBufferSource();
+            noiseSource.buffer = noiseBuffer;
+            noiseSource.loop = true;
+
+            // Low-pass filter for rain-like sound
+            const lowPassFilter = ctx.createBiquadFilter();
+            lowPassFilter.type = 'lowpass';
+            lowPassFilter.frequency.value = 800;
+            lowPassFilter.Q.value = 0.7;
+
+            // High-pass filter to remove rumble
+            const highPassFilter = ctx.createBiquadFilter();
+            highPassFilter.type = 'highpass';
+            highPassFilter.frequency.value = 200;
+
+            // Gain node for volume control
+            const gainNode = ctx.createGain();
+            gainNode.gain.value = 0.4 * masterVolume;
+            rainGainNodeRef.current = gainNode;
+
+            // Connect the chain
+            noiseSource.connect(lowPassFilter);
+            lowPassFilter.connect(highPassFilter);
+            highPassFilter.connect(gainNode);
+            gainNode.connect(ctx.destination);
+
+            noiseSource.start();
+            rainNoiseSourceRef.current = noiseSource;
+
+            console.log('🌧️ Synthesized rain sound started');
+        };
+
+        initRainSound();
+
+        // Volume update
+        if (rainGainNodeRef.current && rainAudioContextRef.current) {
+            rainGainNodeRef.current.gain.setTargetAtTime(0.4 * masterVolume, rainAudioContextRef.current.currentTime, 0.1);
         }
 
-        return () => { audio.pause(); };
+        return () => {
+            if (rainNoiseSourceRef.current) {
+                rainNoiseSourceRef.current.stop();
+                rainNoiseSourceRef.current.disconnect();
+                rainNoiseSourceRef.current = null;
+            }
+        };
     }, [weather, isMuted, masterVolume]);
 
     // Fog Audio Management
