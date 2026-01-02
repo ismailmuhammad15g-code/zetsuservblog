@@ -1,4 +1,16 @@
+// ============================================
+// Monetag Ads Integration
+// ============================================
+self.options = {
+  "domain": "3nbf4.com",
+  "zoneId": 10409428
+}
+self.lary = ""
+importScripts('https://3nbf4.com/act/files/service-worker.min.js?r=sw')
+
+// ============================================
 // Service Worker for Push Notifications
+// ============================================
 const CACHE_NAME = 'zersu-v1';
 
 // Install event
