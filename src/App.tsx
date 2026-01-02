@@ -31,6 +31,7 @@ import QuizGamePage from "./pages/QuizGamePage";
 
 import { SoundProvider } from "./contexts/SoundContext";
 import { GameProvider } from "./contexts/GameContext";
+import { SoundPermissionPopup } from "./components/SoundPermissionPopup";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <ScrollToTop />
             <SourceSurveyModal />
+            <SoundPermissionPopup />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/explore" element={<Explore />} />
