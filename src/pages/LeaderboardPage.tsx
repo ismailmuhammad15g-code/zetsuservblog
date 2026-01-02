@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import BottomNavigation from '@/components/zersu-game/BottomNavigation';
 import { supabase } from '@/integrations/supabase/client';
-import { Trophy, Medal, Crown, User, Loader2, Star, Lock, TrendingUp, Target, Zap, RefreshCw } from 'lucide-react';
+import { Trophy, Medal, Crown, User, Loader2, Star, TrendingUp, Target, Zap, RefreshCw, ChevronRight, Sparkles } from 'lucide-react';
 
 interface LeaderboardEntry {
     user_id: string;
     points: number;
     zcoins: number;
+    level: number;
+    xp: number;
     server_region: string;
     username?: string;
     avatar_url?: string;
@@ -16,6 +19,7 @@ interface LeaderboardEntry {
 type LeaderboardTab = 'rank' | 'level';
 
 const LeaderboardPage = () => {
+    const navigate = useNavigate();
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -64,6 +68,8 @@ const LeaderboardPage = () => {
                         user_id: p.user_id,
                         points: p.points || 0,
                         zcoins: p.zcoins || 0,
+                        level: p.level || 1,
+                        xp: p.xp || 0,
                         server_region: p.server_region || 'GLOBAL',
                         username: userProfile?.username || `Player_${p.user_id.slice(0, 6)}`,
                         avatar_url: userProfile?.avatar_url
@@ -186,8 +192,8 @@ const LeaderboardPage = () => {
                             <button
                                 onClick={() => setSelectedTab('rank')}
                                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm ${selectedTab === 'rank'
-                                        ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black shadow-lg shadow-yellow-500/30'
-                                        : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50'
+                                    ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black shadow-lg shadow-yellow-500/30'
+                                    : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50'
                                     }`}
                             >
                                 <Star className="w-4 h-4" />
@@ -200,9 +206,8 @@ const LeaderboardPage = () => {
                                         : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50'
                                     }`}
                             >
-                                <Lock className="w-3.5 h-3.5" />
+                                <Sparkles className="w-3.5 h-3.5" />
                                 L.V
-                                <span className="text-[10px] bg-white/20 px-1.5 py-0.5 rounded-full">قريباً</span>
                             </button>
                         </div>
                         <button
@@ -248,16 +253,16 @@ const LeaderboardPage = () => {
                                                             src={entry.avatar_url}
                                                             alt={entry.username}
                                                             className={`w-11 h-11 rounded-full object-cover border-2 ${rank === 1 ? 'border-yellow-400' :
-                                                                    rank === 2 ? 'border-gray-400' :
-                                                                        rank === 3 ? 'border-amber-500' :
-                                                                            'border-white/20'
+                                                                rank === 2 ? 'border-gray-400' :
+                                                                    rank === 3 ? 'border-amber-500' :
+                                                                        'border-white/20'
                                                                 }`}
                                                         />
                                                     ) : (
                                                         <div className={`w-11 h-11 rounded-full flex items-center justify-center ${rank === 1 ? 'bg-gradient-to-br from-yellow-400 to-amber-500' :
-                                                                rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
-                                                                    rank === 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600' :
-                                                                        'bg-gradient-to-br from-purple-500 to-pink-500'
+                                                            rank === 2 ? 'bg-gradient-to-br from-gray-300 to-gray-500' :
+                                                                rank === 3 ? 'bg-gradient-to-br from-amber-500 to-orange-600' :
+                                                                    'bg-gradient-to-br from-purple-500 to-pink-500'
                                                             }`}>
                                                             <User className="w-5 h-5 text-white" />
                                                         </div>
@@ -280,9 +285,9 @@ const LeaderboardPage = () => {
 
                                                 {/* Points Badge */}
                                                 <div className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full ${rank === 1 ? 'bg-yellow-500/30 border border-yellow-500/50' :
-                                                        rank === 2 ? 'bg-gray-400/20 border border-gray-400/40' :
-                                                            rank === 3 ? 'bg-amber-500/30 border border-amber-500/50' :
-                                                                'bg-slate-700/50 border border-slate-600/50'
+                                                    rank === 2 ? 'bg-gray-400/20 border border-gray-400/40' :
+                                                        rank === 3 ? 'bg-amber-500/30 border border-amber-500/50' :
+                                                            'bg-slate-700/50 border border-slate-600/50'
                                                     }`}>
                                                     <Star className={`w-4 h-4 ${rank <= 3 ? 'text-yellow-400' : 'text-gray-400'
                                                         }`} />
@@ -298,17 +303,92 @@ const LeaderboardPage = () => {
                             )}
                         </>
                     ) : (
-                        <div className="text-center py-16">
-                            <div className="w-20 h-20 mx-auto mb-5 rounded-full bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-purple-500/30 flex items-center justify-center">
-                                <Lock className="w-9 h-9 text-purple-400" />
-                            </div>
-                            <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-2">
-                                قريباً...
-                            </h3>
-                            <p className="text-gray-400 text-sm max-w-xs mx-auto">
-                                نظام ترتيب المستويات قيد التطوير. ترقبوا!
-                            </p>
-                        </div>
+                        <>
+                            {loading ? (
+                                <div className="flex items-center justify-center py-20">
+                                    <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+                                </div>
+                            ) : (
+                                <>
+                                    {/* My Stats Button */}
+                                    <button
+                                        onClick={() => navigate('/player-stats')}
+                                        className="w-full mb-4 p-4 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl border border-purple-500/40 hover:border-purple-400 transition-all flex items-center justify-between"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-purple-500/30 flex items-center justify-center">
+                                                <User className="w-5 h-5 text-purple-400" />
+                                            </div>
+                                            <div className="text-right">
+                                                <div className="text-white font-bold">إحصائياتي</div>
+                                                <div className="text-gray-400 text-xs">عرض تفاصيل حسابك الكاملة</div>
+                                            </div>
+                                        </div>
+                                        <ChevronRight className="w-5 h-5 text-purple-400" />
+                                    </button>
+
+                                    {/* Level Leaderboard */}
+                                    <div className="space-y-2">
+                                        {[...leaderboard]
+                                            .sort((a, b) => (b.level * 1000 + b.xp) - (a.level * 1000 + a.xp))
+                                            .map((entry, index) => {
+                                                const rank = index + 1;
+                                                const isCurrentUser = entry.user_id === currentUserId;
+                                                return (
+                                                    <div
+                                                        key={entry.user_id}
+                                                        className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${getRankStyle(rank, isCurrentUser)}`}
+                                                    >
+                                                        {/* Rank */}
+                                                        <div className="flex-shrink-0 w-10 flex items-center justify-center">
+                                                            {getRankIcon(rank)}
+                                                        </div>
+
+                                                        {/* Avatar */}
+                                                        <div className="flex-shrink-0 relative">
+                                                            {entry.avatar_url ? (
+                                                                <img
+                                                                    src={entry.avatar_url}
+                                                                    alt={entry.username}
+                                                                    className="w-11 h-11 rounded-full object-cover border-2 border-purple-400/50"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-11 h-11 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                                                                    <User className="w-5 h-5 text-white" />
+                                                                </div>
+                                                            )}
+                                                            {/* Level Badge */}
+                                                            <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center border-2 border-slate-800 text-[10px] font-black text-black">
+                                                                {entry.level}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* User Info */}
+                                                        <div className="flex-1 min-w-0 overflow-hidden">
+                                                            <div className={`font-bold text-base truncate ${isCurrentUser ? 'text-purple-300' : 'text-white'}`}>
+                                                                {entry.username}
+                                                                {isCurrentUser && <span className="text-xs ml-2 text-purple-400">(أنت)</span>}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                                                                <span>⭐ L.V {entry.level}</span>
+                                                                <span>•</span>
+                                                                <span>{entry.xp} XP</span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Level Display */}
+                                                        <div className="flex-shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-full bg-purple-500/20 border border-purple-500/40">
+                                                            <Sparkles className="w-4 h-4 text-purple-400" />
+                                                            <span className="font-bold text-sm text-purple-300">L.V {entry.level}</span>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })
+                                        }
+                                    </div>
+                                </>
+                            )}
+                        </>
                     )}
                 </div>
             </div>

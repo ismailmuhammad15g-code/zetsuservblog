@@ -28,6 +28,7 @@ import ActiveTasksPage from "./pages/ActiveTasksPage";
 import { MultiplayerPage } from "./pages/MultiplayerPage";
 import { VsChallengePage } from "./pages/VsChallengePage";
 import QuizGamePage from "./pages/QuizGamePage";
+import PlayerStatsPage from "./pages/PlayerStatsPage";
 
 import { SoundProvider } from "./contexts/SoundContext";
 import { GameProvider } from "./contexts/GameContext";
@@ -67,6 +68,7 @@ const App = () => (
               <Route path="/multiplayer" element={<MultiplayerPage />} />
               <Route path="/vschallenge/:sessionId" element={<VsChallengePage />} />
               <Route path="/quiz/:sessionId" element={<QuizGamePage />} />
+              <Route path="/player-stats" element={<PlayerStatsPage />} />
 
               {/* User posts (canonical + legacy aliases) */}
               <Route path="/:username/post" element={<UserPosts />} />

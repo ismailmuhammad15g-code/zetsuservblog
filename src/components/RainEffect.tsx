@@ -1,10 +1,110 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 
 const RainEffect: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const thunderAudioRef = useRef<HTMLAudioElement | null>(null);
     const rainAudioContextRef = useRef<AudioContext | null>(null);
     const rainNoiseSourceRef = useRef<AudioBufferSourceNode | null>(null);
+    const rainGainNodeRef = useRef<GainNode | null>(null);
+    const userHasInteracted = useRef(false);
+    const [audioReady, setAudioReady] = useState(false);
+
+    // Seamless audio initialization on first user interaction
+    const initAudioOnInteraction = useCallback(() => {
+        if (userHasInteracted.current) return;
+        userHasInteracted.current = true;
+        setAudioReady(true);
+        console.log('🎵 RainEffect: User interaction detected, audio ready');
+    }, []);
+
+    // Add global listeners for ANY user interaction
+    useEffect(() => {
+        const events = ['click', 'touchstart', 'keydown', 'scroll', 'mousedown'];
+
+        const handler = () => {
+            initAudioOnInteraction();
+            events.forEach(e => document.removeEventListener(e, handler, true));
+        };
+
+        events.forEach(e => {
+            document.addEventListener(e, handler, { passive: true, capture: true });
+        });
+
+        return () => {
+            events.forEach(e => document.removeEventListener(e, handler, true));
+        };
+    }, [initAudioOnInteraction]);
+
+    // Rain Audio - starts only after user interaction
+    useEffect(() => {
+        if (!audioReady) return;
+
+        const initRainSound = async () => {
+            try {
+                const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+                if (!rainAudioContextRef.current) {
+                    rainAudioContextRef.current = new AudioContextClass();
+                }
+                const audioCtx = rainAudioContextRef.current;
+
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+
+                // Don't recreate if already playing
+                if (rainNoiseSourceRef.current) return;
+
+                // Create rain noise buffer (brown noise)
+                const bufferSize = 2 * audioCtx.sampleRate;
+                const noiseBuffer = audioCtx.createBuffer(2, bufferSize, audioCtx.sampleRate);
+
+                for (let channel = 0; channel < 2; channel++) {
+                    const data = noiseBuffer.getChannelData(channel);
+                    let lastOut = 0;
+                    for (let i = 0; i < bufferSize; i++) {
+                        const white = Math.random() * 2 - 1;
+                        data[i] = (lastOut + (0.02 * white)) / 1.02;
+                        lastOut = data[i];
+                        data[i] *= 3.5;
+                    }
+                }
+
+                const noiseSource = audioCtx.createBufferSource();
+                noiseSource.buffer = noiseBuffer;
+                noiseSource.loop = true;
+
+                const lowPass = audioCtx.createBiquadFilter();
+                lowPass.type = 'lowpass';
+                lowPass.frequency.value = 800;
+
+                const highPass = audioCtx.createBiquadFilter();
+                highPass.type = 'highpass';
+                highPass.frequency.value = 200;
+
+                const gainNode = audioCtx.createGain();
+                // Start at 0 for fade-in
+                gainNode.gain.value = 0;
+                rainGainNodeRef.current = gainNode;
+
+                noiseSource.connect(lowPass);
+                lowPass.connect(highPass);
+                highPass.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                noiseSource.start();
+                rainNoiseSourceRef.current = noiseSource;
+
+                // FADE IN over 2 seconds
+                gainNode.gain.setTargetAtTime(0.5, audioCtx.currentTime, 0.5);
+
+                console.log('🌧️ RainEffect: Rain sound started with fade-in');
+            } catch (error) {
+                console.log('RainEffect audio error (suppressed):', error);
+            }
+        };
+
+        initRainSound();
+    }, [audioReady]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -13,70 +113,10 @@ const RainEffect: React.FC = () => {
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Initialize Thunder Audio (external file works after interaction)
+        // Initialize Thunder Audio
         const thunderAudio = new Audio('https://actions.google.com/sounds/v1/weather/thunder_crack.ogg');
         thunderAudio.volume = 1.0;
         thunderAudioRef.current = thunderAudio;
-
-        // Initialize Rain Sound using Web Audio API (like WeatherDisplay)
-        const initRainSound = async () => {
-            const hasPermission = localStorage.getItem('zetsu_sound_permission') === 'accepted';
-            if (!hasPermission) return;
-
-            const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-            if (!rainAudioContextRef.current) {
-                rainAudioContextRef.current = new AudioContextClass();
-            }
-            const audioCtx = rainAudioContextRef.current;
-
-            if (audioCtx.state === 'suspended') {
-                await audioCtx.resume();
-            }
-
-            // Create rain noise buffer (brown noise)
-            const bufferSize = 2 * audioCtx.sampleRate;
-            const noiseBuffer = audioCtx.createBuffer(2, bufferSize, audioCtx.sampleRate);
-
-            for (let channel = 0; channel < 2; channel++) {
-                const data = noiseBuffer.getChannelData(channel);
-                let lastOut = 0;
-                for (let i = 0; i < bufferSize; i++) {
-                    const white = Math.random() * 2 - 1;
-                    data[i] = (lastOut + (0.02 * white)) / 1.02;
-                    lastOut = data[i];
-                    data[i] *= 3.5;
-                }
-            }
-
-            const noiseSource = audioCtx.createBufferSource();
-            noiseSource.buffer = noiseBuffer;
-            noiseSource.loop = true;
-
-            const lowPass = audioCtx.createBiquadFilter();
-            lowPass.type = 'lowpass';
-            lowPass.frequency.value = 800;
-
-            const highPass = audioCtx.createBiquadFilter();
-            highPass.type = 'highpass';
-            highPass.frequency.value = 200;
-
-            const gainNode = audioCtx.createGain();
-            gainNode.gain.value = 0.5;
-
-            noiseSource.connect(lowPass);
-            lowPass.connect(highPass);
-            highPass.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-
-            noiseSource.start();
-            rainNoiseSourceRef.current = noiseSource;
-        };
-
-        // Try to start rain sound
-        initRainSound();
-        // Also try on first interaction
-        const tryInitOnClick = () => initRainSound();
-        document.addEventListener('click', tryInitOnClick, { once: true });
 
         // Animation Variables
         let animationFrameId: number;
@@ -289,10 +329,11 @@ const RainEffect: React.FC = () => {
         return () => {
             cancelAnimationFrame(animationFrameId);
             window.removeEventListener('resize', handleResize);
-            document.removeEventListener('click', tryInitOnClick);
             if (rainNoiseSourceRef.current) {
-                rainNoiseSourceRef.current.stop();
-                rainNoiseSourceRef.current.disconnect();
+                try {
+                    rainNoiseSourceRef.current.stop();
+                    rainNoiseSourceRef.current.disconnect();
+                } catch (e) { /* suppress */ }
             }
             if (thunderAudio) thunderAudio.pause();
         };

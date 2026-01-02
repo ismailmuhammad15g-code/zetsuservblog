@@ -458,7 +458,89 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'game_profiles' AND column_name = 'zgold') THEN
         ALTER TABLE public.game_profiles ADD COLUMN zgold INTEGER DEFAULT 0;
     END IF;
+    -- LEVEL SYSTEM COLUMNS
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'game_profiles' AND column_name = 'level') THEN
+        ALTER TABLE public.game_profiles ADD COLUMN level INTEGER DEFAULT 1;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'game_profiles' AND column_name = 'xp') THEN
+        ALTER TABLE public.game_profiles ADD COLUMN xp INTEGER DEFAULT 0;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'game_profiles' AND column_name = 'total_xp') THEN
+        ALTER TABLE public.game_profiles ADD COLUMN total_xp INTEGER DEFAULT 0;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'game_profiles' AND column_name = 'challenges_completed') THEN
+        ALTER TABLE public.game_profiles ADD COLUMN challenges_completed INTEGER DEFAULT 0;
+    END IF;
 END $$;
+
+-- ============================================
+-- LEVEL SYSTEM: XP Required per Level
+-- Formula: XP_REQUIRED = LEVEL * 100
+-- Level 1->2: 100 XP, Level 2->3: 200 XP, etc.
+-- ============================================
+
+-- Function to add XP and handle level-ups
+CREATE OR REPLACE FUNCTION public.add_xp(p_user_id UUID, p_xp_amount INT)
+RETURNS TABLE(new_level INT, new_xp INT, new_total_xp INT, leveled_up BOOLEAN)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    current_level INT;
+    current_xp INT;
+    current_total_xp INT;
+    xp_for_next_level INT;
+    final_xp INT;
+    final_level INT;
+    did_level_up BOOLEAN := FALSE;
+BEGIN
+    -- Get current values
+    SELECT level, xp, total_xp INTO current_level, current_xp, current_total_xp
+    FROM public.game_profiles
+    WHERE user_id = p_user_id;
+    
+    IF current_level IS NULL THEN
+        current_level := 1;
+        current_xp := 0;
+        current_total_xp := 0;
+    END IF;
+    
+    -- Add XP
+    final_xp := current_xp + p_xp_amount;
+    final_level := current_level;
+    
+    -- Check for level ups (can level up multiple times)
+    LOOP
+        xp_for_next_level := final_level * 100;
+        EXIT WHEN final_xp < xp_for_next_level OR final_level >= 100; -- Max level 100
+        
+        final_xp := final_xp - xp_for_next_level;
+        final_level := final_level + 1;
+        did_level_up := TRUE;
+    END LOOP;
+    
+    -- Update the profile
+    UPDATE public.game_profiles
+    SET level = final_level,
+        xp = final_xp,
+        total_xp = current_total_xp + p_xp_amount,
+        updated_at = now()
+    WHERE user_id = p_user_id;
+    
+    -- Return results
+    RETURN QUERY SELECT final_level, final_xp, current_total_xp + p_xp_amount, did_level_up;
+END;
+$$;
+
+-- Function to get XP required for next level
+CREATE OR REPLACE FUNCTION public.get_xp_for_level(p_level INT)
+RETURNS INT
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    RETURN p_level * 100;
+END;
+$$;
 
 
 DO $$

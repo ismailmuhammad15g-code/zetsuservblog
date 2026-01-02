@@ -26,9 +26,9 @@ serve(async (req: Request) => {
         }
 
         // Validate folder to prevent arbitrary directory writing
-        const allowedFolders = ['posts', 'avatars', 'covers']
+        const allowedFolders = ['posts', 'avatars', 'covers', 'profileimg']
         if (!allowedFolders.includes(folder)) {
-            throw new Error('Invalid folder. Must be posts, avatars, or covers.')
+            throw new Error('Invalid folder. Must be posts, avatars, covers, or profileimg.')
         }
 
         // Initialize Storage
@@ -57,6 +57,9 @@ serve(async (req: Request) => {
             const year = now.getFullYear()
             const month = String(now.getMonth() + 1).padStart(2, '0')
             filePath = `posts/${year}/${month}/${timestamp}-${random}-${sanitizedFilename}`
+        } else if (folder === 'profileimg') {
+            // profileimg/{timestamp}-{random}-{filename}
+            filePath = `profileimg/${timestamp}-${random}-${sanitizedFilename}`
         } else {
             // avatars/{timestamp}-{random}-{filename}
             // covers/{timestamp}-{random}-{filename}
