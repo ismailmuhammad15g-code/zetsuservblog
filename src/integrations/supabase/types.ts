@@ -172,6 +172,7 @@ export type Database = {
           user_id: string
           zcoins: number
           server_region: string
+          challenges_generated: boolean
           created_at: string
           updated_at: string
         }
@@ -179,6 +180,7 @@ export type Database = {
           user_id: string
           zcoins?: number
           server_region?: string
+          challenges_generated?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -186,6 +188,7 @@ export type Database = {
           user_id?: string
           zcoins?: number
           server_region?: string
+          challenges_generated?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -317,7 +320,62 @@ export type Database = {
         }
         Relationships: []
       }
+      user_challenges: {
+        Row: {
+          id: string
+          user_id: string
+          title: string
+          title_ar: string
+          description: string
+          description_ar: string
+          cost: number
+          reward: number
+          failure_penalty: number
+          difficulty: string
+          verification_type: string
+          time_limit: string | null
+          icon: string | null
+          is_active: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          title: string
+          title_ar: string
+          description: string
+          description_ar: string
+          cost?: number
+          reward?: number
+          failure_penalty?: number
+          difficulty: string
+          verification_type?: string
+          time_limit?: string | null
+          icon?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          title?: string
+          title_ar?: string
+          description?: string
+          description_ar?: string
+          cost?: number
+          reward?: number
+          failure_penalty?: number
+          difficulty?: string
+          verification_type?: string
+          time_limit?: string | null
+          icon?: string | null
+          is_active?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
       game_servers: {
+
         Row: {
           id: string
           name: string

@@ -38,31 +38,31 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabCha
     };
 
     return (
-        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-xl border-t border-purple-500/30 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] md:hidden">
-            <div className="flex justify-around items-center max-w-lg mx-auto">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-slate-900/95 backdrop-blur-xl border-t border-purple-500/30 shadow-[0_-4px_20px_rgba(0,0,0,0.5)] transition-all duration-300">
+            <div className="flex justify-between items-center w-full max-w-3xl mx-auto px-2 md:px-6">
                 {tabs.map(tab => {
                     const isActive = currentTab === tab.id;
                     return (
                         <button
                             key={tab.id}
                             onClick={() => handleTabClick(tab)}
-                            className={`flex flex-col items-center justify-center py-2 px-3 flex-1 transition-all duration-200 ${isActive
+                            className={`flex flex-col items-center justify-center py-2 px-1 flex-1 transition-all duration-200 min-w-0 group relative ${isActive
                                 ? 'text-purple-400'
                                 : 'text-gray-500 hover:text-gray-300'
                                 }`}
                         >
                             <div className={`p-1.5 rounded-xl transition-all ${isActive
-                                ? 'bg-purple-500/20 shadow-lg shadow-purple-500/20'
-                                : ''
+                                ? 'bg-purple-500/20 shadow-lg shadow-purple-500/20 -translate-y-1'
+                                : 'group-hover:-translate-y-0.5'
                                 }`}>
                                 {tab.icon}
                             </div>
-                            <span className={`text-[10px] mt-1 font-medium ${isActive ? 'text-purple-400' : ''
+                            <span className={`text-[10px] sm:text-xs mt-1 font-medium truncate w-full text-center ${isActive ? 'text-purple-400' : ''
                                 }`}>
                                 {tab.labelAr}
                             </span>
                             {isActive && (
-                                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full"></div>
+                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full shadow-[0_0_8px_rgba(168,85,247,0.8)]"></div>
                             )}
                         </button>
                     );

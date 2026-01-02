@@ -7,6 +7,7 @@ A modern, feature-rich technical blog platform built for developers and tech ent
 ![Vite](https://img.shields.io/badge/Vite-5.4-646CFF?style=flat&logo=vite&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
 ![Supabase](https://img.shields.io/badge/Supabase-Backend-3ECF8E?style=flat&logo=supabase&logoColor=white)
+![Netlify Status](https://api.netlify.com/api/v1/badges/your-site-id/deploy-status)
 
 ## ✨ Features
 
@@ -81,6 +82,20 @@ A modern, feature-rich technical blog platform built for developers and tech ent
 | `npm run build:dev` | Build for development |
 | `npm run preview` | Preview production build |
 | `npm run lint` | Run ESLint |
+| `npm run deploy` | Build and deploy (requires Netlify CLI) |
+
+## 🚀 Deployment
+
+The project is configured for seamless deployment on **Netlify**.
+
+1. Connect your repository to Netlify.
+2. The `netlify.toml` file will automatically handle build settings and redirects.
+3. Push to `main` to trigger a deploy.
+
+### Manual Deployment
+```bash
+npm run deploy
+```
 
 ## 📁 Project Structure
 
@@ -118,6 +133,8 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 <p align="center">
-  <strong>Created by Ismail Mohammad</strong><br>
-  <em>Built with ❤️ for the developer community</em>
+  <strong>مطور بواسطة: Ismail Mohammad</strong><br>
+  <em>العمر: 15 سنة</em><br>
+  <em>الشغف: الذكاء الاصطناعي وتطوير البرمجيات</em><br>
+  <em>مبني بحب للمجتمع التقني</em>
 </p>

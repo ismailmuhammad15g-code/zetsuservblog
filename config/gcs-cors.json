@@ -1,0 +1,20 @@
+[
+    {
+        "origin": [
+            "*"
+        ],
+        "method": [
+            "PUT",
+            "GET",
+            "HEAD",
+            "OPTIONS"
+        ],
+        "responseHeader": [
+            "Content-Type",
+            "Content-Length",
+            "Content-MD5",
+            "x-goog-content-length-range"
+        ],
+        "maxAgeSeconds": 3600
+    }
+]

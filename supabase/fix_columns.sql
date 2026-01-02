@@ -1,38 +1,17 @@
--- Add missing columns to profiles table safely
+-- ============================================================
+-- CLEANUP SCRIPT: DELETE ALL PROOF IMAGES (RAM ONLY POLICY)
+-- ============================================================
 
--- 1. Add is_verified column
+-- 1. DELETE ALL OBJECTS IN 'proof-images' BUCKET
+-- This removes files physically from storage.
+-- NOTE: Supabase Storage stores metadata in `storage.objects`.
+DELETE FROM storage.objects WHERE bucket_id = 'proof-images';
+
+-- 2. (OPTIONAL) IF YOU WANT TO KEEP THE BUCKET BUT EMPTY
+-- The bucket itself remains for future temporary use if needed, 
+-- but we just wiped all files.
+
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'is_verified') THEN
-        ALTER TABLE public.profiles ADD COLUMN is_verified BOOLEAN DEFAULT false;
-    END IF;
+    RAISE NOTICE 'Deleted all files from proof-images bucket to enforce RAM-only policy.';
 END $$;
-
--- 2. Add is_creator column
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'is_creator') THEN
-        ALTER TABLE public.profiles ADD COLUMN is_creator BOOLEAN DEFAULT false;
-    END IF;
-END $$;
-
--- 3. Add username column if missing
-DO $$
-BEGIN
-    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'profiles' AND column_name = 'username') THEN
-        ALTER TABLE public.profiles ADD COLUMN username TEXT UNIQUE;
-    END IF;
-END $$;
-
--- 4. Re-run promotion for admin
-INSERT INTO public.user_roles (user_id, role)
-SELECT id, 'admin'
-FROM auth.users
-WHERE email = 'zetsuserv@gmail.com'
-ON CONFLICT (user_id, role) DO NOTHING;
-
-UPDATE public.profiles
-SET 
-  is_verified = true, 
-  is_creator = true
-WHERE id IN (SELECT id FROM auth.users WHERE email = 'zetsuserv@gmail.com');

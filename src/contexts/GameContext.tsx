@@ -6,12 +6,12 @@ import { toast } from 'sonner';
 interface GameProfile {
     user_id: string;
     zcoins: number;
-    zgold: number;
-    points: number;
-    wins: number;
-    losses: number;
-    draws: number;
-    games_played: number;
+    zgold?: number;
+    points?: number;
+    wins?: number;
+    losses?: number;
+    draws?: number;
+    games_played?: number;
     server_region: string;
 }
 
@@ -97,7 +97,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
                 console.error('Error fetching challenges:', challengesError);
             }
 
-            setActiveChallenges(challenges || []);
+            setActiveChallenges((challenges as unknown as PlayerChallenge[]) || []);
 
         } catch (error) {
             console.error('Error in refreshGameData:', error);

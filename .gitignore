@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+supabase/functions/get-gcs-signed-url/service-account.json
+
+config/gcp-storage.json
+
+.env
+deploy.bat

@@ -1,10 +1,11 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { GameContext } from '../../contexts/GameContext';
 import { useZersuAI } from '../../hooks/useZersuAI';
+import { useAIChallengeGenerator } from '../../hooks/useAIChallengeGenerator';
 import ZersuCharacter from './ZersuCharacter';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Upload, Clock, Trophy, Target, Shield, Flame, AlertTriangle, CheckCircle, XCircle, Zap, TrendingUp, Loader2 } from 'lucide-react';
+import { Upload, Clock, Trophy, Target, Shield, Flame, AlertTriangle, CheckCircle, XCircle, Zap, TrendingUp, Loader2, Sparkles } from 'lucide-react';
 
 interface Challenge {
     id: string;
@@ -35,36 +36,89 @@ const ChallengeSystem = () => {
     const { userProfile, refreshGameData } = gameContext!;
     const [challenges, setChallenges] = useState<Challenge[]>([]);
     const [loadingChallenges, setLoadingChallenges] = useState(true);
+    const [generatingChallenges, setGeneratingChallenges] = useState(false);
     const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
     const [challengeStatus, setChallengeStatus] = useState<'idle' | 'active' | 'verifying' | 'completed' | 'failed'>('idle');
     const [proofImage, setProofImage] = useState<string | null>(null);
     const [proofFile, setProofFile] = useState<File | null>(null);
     const { verifyChallenge } = useZersuAI();
+    const { generateChallenges: generateAIChallenges, getFallbackChallenges } = useAIChallengeGenerator();
 
-    // Fetch challenges from Supabase
+    // Fetch or generate challenges
     useEffect(() => {
-        const fetchChallenges = async () => {
-            setLoadingChallenges(true);
-            const { data, error } = await supabase
-                .from('challenges')
-                .select('*')
-                .eq('is_active', true)
-                .order('cost', { ascending: true });
-
-            if (!error && data) {
-                setChallenges(data);
-            } else {
-                // Fallback to hardcoded if table doesn't exist yet
-                setChallenges([
-                    { id: 'first-blood', title: 'FIRST BLOOD', title_ar: 'الدم الأول', description: 'Post your first blog post!', description_ar: 'انشر أول منشور لك!', cost: 1, reward: 5, failure_penalty: 2, difficulty: 'easy', verification_type: 'image_upload', time_limit: '24h', icon: 'target' },
-                    { id: 'social-butterfly', title: 'SOCIAL BUTTERFLY', title_ar: 'الفراشة الاجتماعية', description: 'Share on 3 platforms!', description_ar: 'شارك على 3 منصات!', cost: 2, reward: 8, failure_penalty: 3, difficulty: 'medium', verification_type: 'screenshots', time_limit: '48h', icon: 'zap' },
-                    { id: 'comment-master', title: 'COMMENT MASTER', title_ar: 'سيد التعليقات', description: 'Get 10 comments!', description_ar: 'احصل على 10 تعليقات!', cost: 3, reward: 12, failure_penalty: 4, difficulty: 'hard', verification_type: 'ai_verification', time_limit: '72h', icon: 'flame' },
-                ]);
+        const initChallenges = async () => {
+            if (!userProfile?.user_id) {
+                setLoadingChallenges(false);
+                return;
             }
-            setLoadingChallenges(false);
+
+            setLoadingChallenges(true);
+
+            try {
+                // First, check if user has their own challenges generated
+                const { data: userChallenges, error: userError } = await supabase
+                    .from('user_challenges')
+                    .select('*')
+                    .eq('user_id', userProfile.user_id)
+                    .eq('is_active', true)
+                    .order('cost', { ascending: true });
+
+                if (!userError && userChallenges && userChallenges.length > 0) {
+                    // User already has AI-generated challenges
+                    setChallenges(userChallenges);
+                    setLoadingChallenges(false);
+                    return;
+                }
+
+                // User doesn't have challenges yet - need to generate them
+                setGeneratingChallenges(true);
+
+                // Generate new challenges via AI
+                const newChallenges = await generateAIChallenges(userProfile.user_id);
+
+                // Fetch from database to get proper IDs
+                const { data: savedChallenges, error: fetchError } = await supabase
+                    .from('user_challenges')
+                    .select('*')
+                    .eq('user_id', userProfile.user_id)
+                    .eq('is_active', true)
+                    .order('cost', { ascending: true });
+
+                if (!fetchError && savedChallenges && savedChallenges.length > 0) {
+                    setChallenges(savedChallenges);
+                } else {
+                    // Use fallback challenges if everything fails
+                    const fallback = getFallbackChallenges();
+                    setChallenges(fallback.map((c, i) => ({
+                        ...c,
+                        id: `fallback-${i}`,
+                        title_ar: c.title_ar,
+                        description_ar: c.description_ar,
+                        time_limit: c.time_limit,
+                        icon: c.icon
+                    })));
+                }
+
+            } catch (error) {
+                console.error('Error loading challenges:', error);
+                // Use fallback
+                const fallback = getFallbackChallenges();
+                setChallenges(fallback.map((c, i) => ({
+                    ...c,
+                    id: `fallback-${i}`,
+                    title_ar: c.title_ar,
+                    description_ar: c.description_ar,
+                    time_limit: c.time_limit,
+                    icon: c.icon
+                })));
+            } finally {
+                setLoadingChallenges(false);
+                setGeneratingChallenges(false);
+            }
         };
-        fetchChallenges();
-    }, []);
+
+        initChallenges();
+    }, [userProfile?.user_id]);
 
     const getDifficultyConfig = (difficulty: string) => {
         switch (difficulty) {
@@ -184,10 +238,42 @@ const ChallengeSystem = () => {
         setProofFile(null);
     };
 
-    if (loadingChallenges) {
+    // Loading state - generating challenges with AI
+    if (loadingChallenges || generatingChallenges) {
         return (
-            <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+            <div className="flex flex-col items-center justify-center py-20 gap-6">
+                <div className="relative">
+                    <div className="absolute inset-0 bg-purple-500/30 blur-3xl animate-pulse"></div>
+                    <div className="relative">
+                        <Sparkles className="w-16 h-16 text-purple-400 animate-pulse" />
+                    </div>
+                </div>
+
+                <div className="text-center space-y-3">
+                    <div className="flex items-center justify-center gap-3">
+                        <Loader2 className="w-6 h-6 text-purple-500 animate-spin" />
+                        <h3 className="text-xl font-bold text-white">
+                            {generatingChallenges ? 'جاري إنشاء تحدياتك الخاصة...' : 'جاري تحميل التحديات...'}
+                        </h3>
+                    </div>
+                    <p className="text-gray-400 text-sm">
+                        {generatingChallenges
+                            ? '🤖 الذكاء الاصطناعي يصمم لك تحديات فريدة!'
+                            : 'انتظر قليلاً...'}
+                    </p>
+
+                    {generatingChallenges && (
+                        <div className="flex justify-center gap-1 mt-4">
+                            {[0, 1, 2, 3, 4].map((i) => (
+                                <div
+                                    key={i}
+                                    className="w-3 h-3 rounded-full bg-purple-500 animate-bounce"
+                                    style={{ animationDelay: `${i * 0.1}s` }}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
         );
     }
@@ -197,8 +283,11 @@ const ChallengeSystem = () => {
             {/* Header with ZCoins */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
                 <div>
-                    <h2 className="text-xl font-bold text-white mb-1">التحديات المتاحة</h2>
-                    <p className="text-gray-400 text-sm">اختر تحديًا وأثبت قوتك!</p>
+                    <h2 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-purple-400" />
+                        تحدياتك الخاصة
+                    </h2>
+                    <p className="text-gray-400 text-sm">تحديات مُصممة خصيصاً لك بالذكاء الاصطناعي! 🎮</p>
                 </div>
 
                 {/* ZCoins Display */}

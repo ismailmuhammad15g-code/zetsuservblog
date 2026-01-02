@@ -100,18 +100,28 @@ export default function Settings() {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+      // 1. Get Signed URL from Supabase Edge Function
+      const { data, error: functionError } = await supabase.functions.invoke('get-gcs-signed-url', {
+        body: { filename: file.name, contentType: file.type, folder: 'avatars' }
+      });
 
-      const { error: uploadError } = await supabase.storage
-        .from("avatars")
-        .upload(filePath, file, { upsert: true });
+      if (functionError) throw new Error(`Function error: ${functionError.message}`);
+      if (!data?.uploadUrl || !data?.publicUrl) throw new Error('Invalid response from server');
 
-      if (uploadError) throw uploadError;
+      const { uploadUrl, publicUrl } = data;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("avatars")
-        .getPublicUrl(filePath);
+      // 2. Upload directly to Google Cloud Storage
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      }
 
       const { error: updateError } = await supabase
         .from("profiles")
@@ -140,7 +150,7 @@ export default function Settings() {
         .eq("id", user.id);
 
       if (error) throw error;
-      
+
       setProfile(prev => prev ? { ...prev, full_name: fullName, username } : null);
       toast({ title: "Profile updated successfully!" });
     } catch (error: any) {
@@ -204,7 +214,7 @@ export default function Settings() {
           <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse" />
           <div className="absolute bottom-1/4 right-1/4 w-48 h-48 bg-primary/5 rounded-full blur-2xl animate-pulse" style={{ animationDelay: "0.5s" }} />
         </div>
-        
+
         {/* Content */}
         <div className="relative z-10 flex flex-col items-center">
           {/* Logo animation */}
@@ -214,24 +224,24 @@ export default function Settings() {
             </div>
             <div className="absolute -inset-2 rounded-full border-2 border-primary/30 animate-ping" style={{ animationDuration: "2s" }} />
           </div>
-          
+
           {/* Text */}
           <h2 className="text-2xl md:text-3xl font-bold mb-3 text-center bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
             {loadingStep}
           </h2>
           <p className="text-muted-foreground text-center mb-8">Please wait...</p>
-          
+
           {/* Loading dots */}
           <div className="flex gap-2">
             {[0, 1, 2].map(i => (
-              <div 
-                key={i} 
+              <div
+                key={i}
                 className="w-3 h-3 rounded-full bg-primary animate-bounce shadow-sm shadow-primary/50"
                 style={{ animationDelay: `${i * 0.15}s` }}
               />
             ))}
           </div>
-          
+
           {/* Progress bar */}
           <div className="mt-8 w-48 h-1 bg-muted rounded-full overflow-hidden">
             <div className="h-full bg-primary rounded-full animate-pulse" style={{ width: "60%" }} />

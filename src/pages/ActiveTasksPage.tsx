@@ -14,13 +14,18 @@ interface ScheduledChallenge {
     scheduled_at: string | null;
     deadline_at: string | null;
     created_at: string;
+    // Enhanced fields
+    title?: string;
+    titleAr?: string;
+    reward?: number;
+    description?: string;
 }
 
-// Fallback challenge info
-const challengeInfo: Record<string, { title: string; titleAr: string; reward: number }> = {
-    'first-blood': { title: 'FIRST BLOOD', titleAr: 'الدم الأول', reward: 5 },
-    'social-butterfly': { title: 'SOCIAL BUTTERFLY', titleAr: 'الفراشة الاجتماعية', reward: 8 },
-    'comment-master': { title: 'COMMENT MASTER', titleAr: 'سيد التعليقات', reward: 12 },
+// Fallback challenge info for system tasks
+const systemChallenges: Record<string, { title: string; titleAr: string; reward: number; description?: string }> = {
+    'first-blood': { title: 'FIRST BLOOD', titleAr: 'الدم الأول', reward: 5, description: 'أكمل تحديك الأول' },
+    'social-butterfly': { title: 'SOCIAL BUTTERFLY', titleAr: 'الفراشة الاجتماعية', reward: 8, description: 'علق على 5 منشورات' },
+    'comment-master': { title: 'COMMENT MASTER', titleAr: 'سيد التعليقات', reward: 12, description: 'احصل على 50 إعجاب لتعليقك' },
 };
 
 // Main content component that uses GameContext
@@ -47,29 +52,79 @@ const ActiveTasksContent: React.FC = () => {
             }
 
             try {
-                // Fetch active/scheduled
-                const { data: activeData, error: activeError } = await supabase
+                // 1. Fetch active/scheduled from player_challenges
+                const { data: playerTasks, error: activeError } = await supabase
                     .from('player_challenges')
                     .select('*')
                     .eq('user_id', userProfile.user_id)
                     .in('status', ['scheduled', 'active'])
-                    .not('scheduled_at', 'is', null)
-                    .order('created_at', { ascending: false });
+                    .not('scheduled_at', 'is', null);
 
-                if (!activeError && activeData) {
-                    setScheduledChallenges(activeData as ScheduledChallenge[]);
+                if (!activeError && playerTasks) {
+                    // 2. Identify custom challenges (UUIDs) vs System challenges
+                    const customChallengeIds = playerTasks
+                        .map(t => t.challenge_id)
+                        .filter(id => id.length > 20); // Simple UUID check
+
+                    // 3. Fetch details for custom challenges
+                    let customChallengesMap: Record<string, any> = {};
+                    if (customChallengeIds.length > 0) {
+                        const { data: customData } = await supabase
+                            .from('user_challenges')
+                            .select('id, title, title_ar, reward, description, description_ar')
+                            .in('id', customChallengeIds);
+
+                        if (customData) {
+                            customData.forEach(c => {
+                                customChallengesMap[c.id] = c;
+                            });
+                        }
+                    }
+
+                    // 4. Merge and Format
+                    const formattedTasks: ScheduledChallenge[] = playerTasks.map((task: any) => {
+                        const isSystem = task.challenge_id.length < 20;
+                        const info = isSystem
+                            ? systemChallenges[task.challenge_id]
+                            : customChallengesMap[task.challenge_id];
+
+                        return {
+                            ...task,
+                            title: info?.title || 'Unknown Challenge',
+                            titleAr: info?.title_ar || info?.titleAr || 'تحدي مجهول',
+                            reward: info?.reward || 0,
+                            description: info?.description_ar || info?.description || ''
+                        };
+                    });
+
+                    // 5. SORTING: Active First, then Scheduled (by time)
+                    const sorted = formattedTasks.sort((a, b) => {
+                        // Priority 1: Status (Active > Scheduled)
+                        if (a.status === 'active' && b.status !== 'active') return -1;
+                        if (a.status !== 'active' && b.status === 'active') return 1;
+
+                        // Priority 2: Schedule Time (Sooner first)
+                        const timeA = new Date(a.scheduled_at || 0).getTime();
+                        const timeB = new Date(b.scheduled_at || 0).getTime();
+                        return timeA - timeB;
+                    });
+
+                    setScheduledChallenges(sorted);
                 }
 
                 // Fetch history (completed/failed) - last 10
+                // (Using similar logic to fetch titles if needed, but for now we skip join for history optimization)
                 const { data: historyData, error: historyError } = await supabase
                     .from('player_challenges')
                     .select('*')
                     .eq('user_id', userProfile.user_id)
                     .in('status', ['completed', 'failed'])
-                    .order('created_at', { ascending: false })
+                    .order('updated_at', { ascending: false }) // Sort by completion time
                     .limit(10);
 
                 if (!historyError && historyData) {
+                    // Quick fetch for history titles if needed, or just display ID for now
+                    // Ideally we should do the same join logic here
                     setHistoryChallenges(historyData);
                 }
             } catch (e) {
@@ -195,11 +250,6 @@ const ActiveTasksContent: React.FC = () => {
                     ) : (
                         /* Tasks List */
                         scheduledChallenges.map((task) => {
-                            const info = challengeInfo[task.challenge_id] || {
-                                title: task.challenge_id.toUpperCase().replace(/-/g, ' '),
-                                titleAr: task.challenge_id,
-                                reward: 5
-                            };
                             const timeRemaining = getTimeRemaining(task.scheduled_at);
 
                             return (
@@ -219,12 +269,13 @@ const ActiveTasksContent: React.FC = () => {
                                                     <Target className="w-5 h-5 text-purple-400" />
                                                 </div>
                                                 <div>
-                                                    <h3 className="text-lg font-bold text-white">{info.title}</h3>
-                                                    <p className="text-purple-300 text-sm">{info.titleAr}</p>
+                                                    <h3 className="text-lg font-bold text-white">{task.title || 'Challenge'}</h3>
+                                                    <p className="text-purple-300 text-sm">{task.titleAr || task.title}</p>
+                                                    {task.description && <p className="text-gray-500 text-xs mt-1">{task.description}</p>}
                                                 </div>
                                             </div>
                                             <div className="px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full">
-                                                <span className="text-green-400 text-sm font-bold">+{info.reward} 💎</span>
+                                                <span className="text-green-400 text-sm font-bold">+{task.reward} 💎</span>
                                             </div>
                                         </div>
 
@@ -323,7 +374,7 @@ const ActiveTasksContent: React.FC = () => {
                         <h2 className="text-xl font-bold text-gray-400 mb-4 px-2">آخر النشاطات 📜</h2>
                         <div className="space-y-3">
                             {historyChallenges.map((task) => {
-                                const info = challengeInfo[task.challenge_id] || {
+                                const info = systemChallenges[task.challenge_id] || {
                                     title: task.challenge_id,
                                     titleAr: task.challenge_id,
                                     reward: 5

@@ -38,7 +38,7 @@ const GameLoginFlow = () => {
             await joinGame(server);
 
             // Update server player count
-            await supabase.rpc('increment_server_players', { server_id: server }).catch(() => { });
+            await supabase.rpc('increment_server_players' as any, { server_id: server }).catch(() => { });
 
             setStep(3);
         } catch (error) {
@@ -60,60 +60,85 @@ const GameLoginFlow = () => {
         window.location.href = '/register';
     };
 
-    // Auth Error Modal
+    // Auth Error Modal - ENHANCED & SCROLLABLE
     if (showAuthError) {
         return (
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                <div className="w-full max-w-md bg-gradient-to-br from-red-900/90 to-slate-900/90 backdrop-blur-xl rounded-3xl border border-red-500/50 shadow-2xl shadow-red-500/20 overflow-hidden animate-in zoom-in-95">
-                    {/* Header */}
-                    <div className="bg-gradient-to-r from-red-600 to-red-800 p-6 text-center">
-                        <div className="w-16 h-16 bg-red-500/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <UserX className="w-8 h-8 text-white" />
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in duration-300">
+                <style>{`
+                    .horror-scroll::-webkit-scrollbar { width: 8px; }
+                    .horror-scroll::-webkit-scrollbar-track { background: #1a0505; }
+                    .horror-scroll::-webkit-scrollbar-thumb { background: #7f1d1d; border-radius: 4px; }
+                    .horror-scroll::-webkit-scrollbar-thumb:hover { background: #991b1b; }
+                `}</style>
+                <div className="w-full max-w-md max-h-[90vh] bg-gradient-to-b from-black via-red-950/20 to-black rounded-3xl border border-red-900/50 shadow-[0_0_50px_rgba(220,38,38,0.2)] overflow-hidden animate-in zoom-in-95 duration-500 overflow-y-auto horror-scroll">
+
+                    {/* Header with creepy gradient */}
+                    <div className="relative bg-gradient-to-br from-red-950 to-black p-8 text-center border-b border-red-900/30">
+                        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/black-scales.png')] opacity-30"></div>
+                        <div className="relative z-10">
+                            <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-red-500/50 shadow-[0_0_30px_rgba(220,38,38,0.4)] animate-pulse">
+                                <UserX className="w-10 h-10 text-red-500" />
+                            </div>
+                            <h2 className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-b from-red-500 to-red-900 drop-shadow-sm">
+                                ❌ ACCESS DENIED
+                            </h2>
                         </div>
-                        <h2 className="text-2xl font-black text-white">❌ خطأ!</h2>
                     </div>
 
                     {/* Content */}
-                    <div className="p-8 text-center">
-                        <div className="flex items-center justify-center gap-2 text-red-400 mb-4">
-                            <AlertTriangle className="w-5 h-5" />
-                            <span className="font-bold">أنت غير مسجل!</span>
+                    <div className="p-8 text-center space-y-6">
+                        <div className="flex flex-col items-center gap-3 text-red-400">
+                            <AlertTriangle className="w-8 h-8 animate-bounce" />
+                            <span className="font-bold text-xl tracking-widest text-red-500 uppercase">Unregistered Soul</span>
                         </div>
 
-                        <p className="text-gray-300 mb-2">
-                            You are not registered on <span className="text-purple-400 font-bold">ZetsuservBlog</span>!
-                        </p>
-                        <p className="text-gray-400 text-sm mb-8">
-                            يجب عليك التسجيل أولاً لتحدي Zersu والحصول على ZCoins!
-                        </p>
+                        <div className="space-y-2">
+                            <p className="text-gray-400 text-lg">
+                                You are not known in the realm of <span className="text-red-500 font-black font-mono">ZetsuservBlog</span>.
+                            </p>
+                            <p className="text-gray-500 text-sm">
+                                Only registered warriors may challenge Zersu.
+                            </p>
+                        </div>
 
                         {/* Zersu mocking */}
-                        <div className="flex justify-center mb-6">
-                            <ZersuCharacter mood="laughing" size="medium" />
+                        <div className="relative py-4 group">
+                            <div className="absolute inset-0 bg-red-500/5 blur-[40px] group-hover:bg-red-500/10 transition-all duration-700"></div>
+                            <div className="relative transform hover:scale-105 transition-transform duration-300">
+                                <ZersuCharacter mood="laughing" size="medium" />
+                            </div>
+                            <p className="text-red-400/80 italic text-sm mt-4 font-serif">
+                                "Ha! You think you can enter MY arena without a name?
+                                <br />
+                                <span className="text-red-500 font-bold">Pathetic!</span> Go register... if you dare!" 😈
+                            </p>
                         </div>
-                        <p className="text-gray-500 italic text-sm mb-8">
-                            "هاهاها! تظن أنك تستطيع تحديي بدون حساب؟ اذهب وسجل أولاً يا جبان!" 😈
-                        </p>
 
                         {/* Buttons */}
-                        <div className="flex flex-col gap-3">
+                        <div className="flex flex-col gap-4 mt-4">
                             <button
-                                onClick={goToRegister}
-                                className="w-full py-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-lg rounded-xl hover:scale-105 transition-transform shadow-lg shadow-green-500/30"
+                                onClick={() => window.location.href = '/register?type=horror&redirectTo=/zetsuchallenge'}
+                                className="relative w-full py-4 group overflow-hidden rounded-xl bg-red-950 border border-red-800 hover:border-red-500 transition-all shadow-[0_0_20px_rgba(220,38,38,0.2)] hover:shadow-[0_0_40px_rgba(220,38,38,0.5)]"
                             >
-                                سجّل الآن! 🚀
+                                <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-900 opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                                <div className="relative flex items-center justify-center gap-2 text-red-100 font-black text-lg tracking-wider group-hover:scale-105 transition-transform">
+                                    <span>REGISTER NOW</span>
+                                    <span className="text-2xl">🩸</span>
+                                </div>
                             </button>
+
                             <button
-                                onClick={() => window.location.href = '/auth'}
-                                className="w-full py-3 bg-purple-600 text-white font-bold rounded-xl hover:bg-purple-700 transition-colors"
+                                onClick={() => window.location.href = '/auth?redirectTo=/zetsuchallenge'}
+                                className="w-full py-3 bg-slate-900/50 text-purple-400 font-bold rounded-xl border border-purple-900/30 hover:bg-purple-900/20 hover:border-purple-500/50 transition-all"
                             >
-                                لدي حساب - تسجيل الدخول
+                                I have an account - Login
                             </button>
+
                             <button
                                 onClick={cancelGameJoin}
-                                className="w-full py-3 bg-slate-700 text-gray-300 font-bold rounded-xl hover:bg-slate-600 transition-colors"
+                                className="w-full py-3 text-gray-500 font-bold hover:text-gray-300 transition-colors text-sm"
                             >
-                                إلغاء
+                                Flee (Cancel)
                             </button>
                         </div>
                     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import BottomNavigation from '@/components/zersu-game/BottomNavigation';
@@ -97,12 +96,13 @@ const ShopPage = () => {
                 if (user) {
                     const { data: profile } = await supabase
                         .from('game_profiles')
-                        .select('zcoins, zgold')
+                        .select('zcoins')
                         .eq('user_id', user.id)
                         .single();
 
                     if (profile) {
-                        setUserProfile(profile);
+                        // zgold doesn't exist in DB yet, default to 0
+                        setUserProfile({ zcoins: profile.zcoins ?? 0, zgold: 0 });
                     }
                 }
             } catch (error) {

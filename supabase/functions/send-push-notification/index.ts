@@ -1,10 +1,14 @@
+// @ts-ignore - Deno imports only work in Supabase Edge Functions
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+// @ts-ignore
 import * as webpush from "jsr:@negrel/webpush@0.5.0";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 interface PushPayload {
@@ -68,13 +72,17 @@ function vapidBase64UrlToExportedJwk(vapidPublicKey: string, vapidPrivateKey: st
 
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response("ok", { headers: corsHeaders });
   }
 
   try {
+    // @ts-ignore - Deno is available in Edge Functions runtime
     const vapidPublicKey = Deno.env.get("VAPID_PUBLIC_KEY");
+    // @ts-ignore
     const vapidPrivateKey = Deno.env.get("VAPID_PRIVATE_KEY");
+    // @ts-ignore
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    // @ts-ignore
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
     if (!vapidPublicKey || !vapidPrivateKey) {
@@ -116,7 +124,7 @@ const handler = async (req: Request): Promise<Response> => {
     } else {
       const { data: allSubs, error } = await supabase.from("push_subscriptions").select("user_id");
       if (error) throw error;
-      targetUserIds = [...new Set((allSubs ?? []).map((s: any) => s.user_id))];
+      targetUserIds = [...new Set((allSubs ?? []).map((s: any) => s.user_id))] as string[];
     }
 
     if (targetUserIds.length === 0) {
@@ -162,11 +170,11 @@ const handler = async (req: Request): Promise<Response> => {
         try {
           await subscriber.pushTextMessage(JSON.stringify(msg), { ttl: 24 * 60 * 60 });
           return { ok: true as const, delete: false as const };
-        } catch (e) {
+        } catch (e: any) {
           // Push services return 410 when subscription is gone
           if (e instanceof webpush.PushMessageError) {
-            console.error("[push] PushMessageError:", e.toString());
-            if (e.isGone()) {
+            console.error("[push] PushMessageError:", (e as any).toString());
+            if ((e as any).isGone()) {
               return { ok: false as const, delete: true as const };
             }
             return { ok: false as const, delete: false as const };
@@ -179,9 +187,9 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     const toDelete = results
-      .map((r, i) => ({ r, sub: subscriptions[i] }))
-      .filter((x) => x.r.delete)
-      .map((x) => x.sub);
+      .map((r: any, i: number) => ({ r, sub: subscriptions[i] }))
+      .filter((x: any) => x.r.delete)
+      .map((x: any) => x.sub);
 
     if (toDelete.length) {
       console.log(`[push] Deleting ${toDelete.length} expired subscriptions`);
@@ -192,7 +200,7 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
-    const successCount = results.filter((r) => r.ok).length;
+    const successCount = results.filter((r: any) => r.ok).length;
 
     return new Response(JSON.stringify({ success: true, sent: successCount }), {
       status: 200,

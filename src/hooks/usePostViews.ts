@@ -19,28 +19,32 @@ export function usePostViews(postId: string) {
     if (!postId) return;
 
     const trackView = async () => {
-      const sessionId = getSessionId();
-      
-      // Get current user if logged in
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Try to insert a view record (will fail silently if already exists due to unique constraint)
-      const { error } = await supabase
-        .from('post_views')
-        .insert({
-          post_id: postId,
-          viewer_id: user?.id || null,
-          session_id: sessionId
-        });
-      
-      if (!error) {
-        // View was tracked, increment the counter
-        await supabase
-          .from('posts')
-          .update({ views_count: viewsCount + 1 })
-          .eq('id', postId);
-        
-        setHasTracked(true);
+      try {
+        const sessionId = getSessionId();
+
+        // Get current user if logged in
+        const { data: { user } } = await supabase.auth.getUser();
+
+        // Try to insert a view record (will fail silently if already exists due to unique constraint)
+        const { error } = await supabase
+          .from('post_views')
+          .insert({
+            post_id: postId,
+            viewer_id: user?.id || null,
+            session_id: sessionId
+          });
+
+        if (!error) {
+          // View was tracked, increment the counter
+          await supabase
+            .from('posts')
+            .update({ views_count: viewsCount + 1 })
+            .eq('id', postId);
+
+          setHasTracked(true);
+        }
+      } catch {
+        // Silently fail - table might not exist or RLS blocks it
       }
     };
 
@@ -50,14 +54,14 @@ export function usePostViews(postId: string) {
         .select('views_count')
         .eq('id', postId)
         .single();
-      
+
       if (!error && data) {
         setViewsCount(data.views_count);
       }
     };
 
     fetchViewCount();
-    
+
     if (!hasTracked) {
       trackView();
     }

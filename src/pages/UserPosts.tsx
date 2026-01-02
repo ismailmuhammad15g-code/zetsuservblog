@@ -224,7 +224,7 @@ export default function UserPosts() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setPosts(data || []);
+      setPosts((data as unknown as Post[]) || []);
     } catch (error) {
       console.error("Error fetching posts:", error);
     } finally {
@@ -238,22 +238,33 @@ export default function UserPosts() {
 
     setUploading(true);
     try {
-      const fileExt = file.name.split(".").pop();
-      const filePath = `${user.id}/${Date.now()}.${fileExt}`;
+      // 1. Get Signed URL from Supabase Edge Function
+      const { data, error: functionError } = await supabase.functions.invoke('get-gcs-signed-url', {
+        body: { filename: file.name, contentType: file.type, folder: 'posts' }
+      });
 
-      const { error: uploadError } = await supabase.storage
-        .from("post-images")
-        .upload(filePath, file);
+      if (functionError) throw new Error(`Function error: ${functionError.message}`);
+      if (!data?.uploadUrl || !data?.publicUrl) throw new Error('Invalid response from server');
 
-      if (uploadError) throw uploadError;
+      const { uploadUrl, publicUrl } = data;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from("post-images")
-        .getPublicUrl(filePath);
+      // 2. Upload directly to Google Cloud Storage
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      }
 
       setCoverImage(publicUrl);
-      toast({ title: "Image uploaded!" });
+      toast({ title: "✓ تم رفع الصورة بنجاح!" });
     } catch (error: any) {
+      console.error('Upload Error:', error);
       toast({ title: "Error uploading image", description: error.message, variant: "destructive" });
     } finally {
       setUploading(false);

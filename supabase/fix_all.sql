@@ -200,6 +200,54 @@ BEGIN
 END $$;
 
 -- ============================================
+-- 5.1. POST VIEWS TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.post_views (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  post_id UUID NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
+  viewer_id UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  session_id TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(post_id, session_id)
+);
+ALTER TABLE public.post_views ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'post_views' AND policyname = 'Anyone can insert views') THEN
+        CREATE POLICY "Anyone can insert views" ON public.post_views FOR INSERT WITH CHECK (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'post_views' AND policyname = 'Anyone can read views') THEN
+        CREATE POLICY "Anyone can read views" ON public.post_views FOR SELECT USING (true);
+    END IF;
+END $$;
+
+-- ============================================
+-- 5.2. COMMENT LIKES TABLE
+-- ============================================
+CREATE TABLE IF NOT EXISTS public.comment_likes (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  comment_id UUID NOT NULL REFERENCES public.comments(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  UNIQUE(comment_id, user_id)
+);
+ALTER TABLE public.comment_likes ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'comment_likes' AND policyname = 'Anyone can read comment likes') THEN
+        CREATE POLICY "Anyone can read comment likes" ON public.comment_likes FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'comment_likes' AND policyname = 'Authenticated can like comments') THEN
+        CREATE POLICY "Authenticated can like comments" ON public.comment_likes FOR INSERT TO authenticated WITH CHECK (auth.uid() = user_id);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'comment_likes' AND policyname = 'Users can unlike own likes') THEN
+        CREATE POLICY "Users can unlike own likes" ON public.comment_likes FOR DELETE TO authenticated USING (auth.uid() = user_id);
+    END IF;
+END $$;
+
+-- ============================================
 -- 6. LIKES TABLE
 -- ============================================
 CREATE TABLE IF NOT EXISTS public.likes (
@@ -746,10 +794,27 @@ CREATE TABLE IF NOT EXISTS public.game_sessions (
     start_time TIMESTAMP WITH TIME ZONE,
     end_time TIMESTAMP WITH TIME ZONE,
     host_score INTEGER DEFAULT 0,
-    guest_score INTEGER DEFAULT 0
+    guest_score INTEGER DEFAULT 0,
+    game_mode TEXT DEFAULT 'task_check', -- 'task_check' or 'quiz'
+    game_state JSONB DEFAULT '{}'::jsonb, -- Store quiz state, turns, questions
+    duration INTEGER DEFAULT 0 -- Duration in minutes for timed games
 );
 
 -- Enable RLS
+ALTER TABLE public.game_sessions ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'game_sessions' AND column_name = 'game_mode') THEN
+        ALTER TABLE public.game_sessions ADD COLUMN game_mode TEXT DEFAULT 'task_check';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'game_sessions' AND column_name = 'game_state') THEN
+        ALTER TABLE public.game_sessions ADD COLUMN game_state JSONB DEFAULT '{}'::jsonb;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'game_sessions' AND column_name = 'duration') THEN
+        ALTER TABLE public.game_sessions ADD COLUMN duration INTEGER DEFAULT 0;
+    END IF;
+END $$;
 ALTER TABLE public.game_sessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.game_sessions REPLICA IDENTITY FULL;
 

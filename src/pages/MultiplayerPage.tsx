@@ -13,6 +13,8 @@ export const MultiplayerPage = () => {
     const [isCreating, setIsCreating] = useState(false);
     const [isJoining, setIsJoining] = useState(false);
     const [isCopied, setIsCopied] = useState(false);
+    const [gameMode, setGameMode] = useState<'task_check' | 'quiz'>('task_check');
+    const [duration, setDuration] = useState(3);
 
     // Fetch user profile
     const { data: userProfile } = useQuery({
@@ -48,11 +50,15 @@ export const MultiplayerPage = () => {
                     filter: `invite_code=eq.${inviteCode}`
                 },
                 (payload) => {
-                    const newSession = payload.new;
+                    const newSession = payload.new as any;
                     if (newSession.guest_id && newSession.status === 'active') {
                         toast.success('انضم صديقك! سيبدأ اللعب الآن... ⚔️');
                         setTimeout(() => {
-                            navigate(`/vschallenge/${newSession.id}`);
+                            if (newSession.game_mode === 'quiz') {
+                                navigate(`/quiz/${newSession.id}`);
+                            } else {
+                                navigate(`/vschallenge/${newSession.id}`);
+                            }
                         }, 1500);
                     }
                 }
@@ -75,7 +81,9 @@ export const MultiplayerPage = () => {
                 .insert({
                     host_id: userProfile.id,
                     invite_code: code,
-                    status: 'waiting'
+                    status: 'waiting',
+                    game_mode: gameMode,
+                    duration: gameMode === 'quiz' ? duration : 0
                 })
                 .select()
                 .single();
@@ -128,8 +136,13 @@ export const MultiplayerPage = () => {
             toast.success('تم الاتصال بنجاح! استعد للقتال ⚔️');
 
             // Navigate to game
+            const sessionData = session as any;
             setTimeout(() => {
-                navigate(`/vschallenge/${session.id}`);
+                if (sessionData.game_mode === 'quiz') {
+                    navigate(`/quiz/${session.id}`);
+                } else {
+                    navigate(`/vschallenge/${session.id}`);
+                }
             }, 1000);
 
         } catch (error) {
@@ -266,6 +279,52 @@ export const MultiplayerPage = () => {
                     </h3>
 
                     <div className="space-y-3">
+                        {/* Game Mode Selection */}
+                        <div className="bg-black/40 rounded-xl p-4 border border-purple-500/20">
+                            <label className="text-sm text-gray-400 mb-2 block">اختر نوع اللعبة</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={() => setGameMode('task_check')}
+                                    className={`p-3 rounded-lg border text-sm font-bold transition-all ${gameMode === 'task_check'
+                                        ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/40'
+                                        : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-purple-500/50'
+                                        }`}
+                                >
+                                    ✅ تحدي المهام
+                                </button>
+                                <button
+                                    onClick={() => setGameMode('quiz')}
+                                    className={`p-3 rounded-lg border text-sm font-bold transition-all ${gameMode === 'quiz'
+                                        ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/40'
+                                        : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-purple-500/50'
+                                        }`}
+                                >
+                                    ❓ الأسئلة
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Duration Selection (Quiz Only) */}
+                        {gameMode === 'quiz' && (
+                            <div className="bg-black/40 rounded-xl p-4 border border-purple-500/20 animate-in fade-in slide-in-from-top-2">
+                                <label className="text-sm text-gray-400 mb-2 block">مدة اللعبة (دقائق)</label>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {[3, 4, 5, 10].map((mins) => (
+                                        <button
+                                            key={mins}
+                                            onClick={() => setDuration(mins)}
+                                            className={`py-2 rounded-lg border text-sm font-bold transition-all ${duration === mins
+                                                ? 'bg-pink-600 border-pink-500 text-white shadow-lg shadow-pink-900/40'
+                                                : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-pink-500/50'
+                                                }`}
+                                        >
+                                            {mins}د ⏱️
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         <input
                             type="text"
                             placeholder="الصق رمز المشاركة هنا"
