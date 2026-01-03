@@ -1,6 +1,20 @@
 import React, { useEffect, useRef } from 'react';
 import { useSound } from '@/contexts/SoundContext';
 
+// Rain shader configuration constants
+const RAIN_CONFIG = {
+    /** Number of rain drops to render - reduced for performance */
+    DROP_COUNT: 800,
+    /** Base falling speed of rain drops */
+    FALL_SPEED: 20,
+    /** Base wind direction and strength (negative = left) */
+    WIND_STRENGTH: -2.5,
+    /** Minimum delay between lightning strikes (ms) */
+    LIGHTNING_MIN_DELAY: 6000,
+    /** Random additional delay for lightning (ms) */
+    LIGHTNING_RANDOM_DELAY: 8000,
+} as const;
+
 const RainShader: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -25,15 +39,8 @@ const RainShader: React.FC = () => {
         let windTime = 0;
 
         let lastLightningTime = Date.now();
-        let nextLightningDelay = 5000;
+        let nextLightningDelay = RAIN_CONFIG.LIGHTNING_MIN_DELAY;
         let shakeDuration = 0;
-
-        // Optimized settings - reduced rain count for better performance
-        const settings = {
-            rainCount: 800, // Reduced from 1600 for better performance
-            rainSpeed: 20,
-            baseWind: -2.5
-        };
 
         class Drop {
             x = 0; y = 0; z = 0; len = 0; velY = 0; opacity = 0;
@@ -45,12 +52,12 @@ const RainShader: React.FC = () => {
                 this.x = Math.random() * (w + 300) - 150;
                 this.y = randomY ? Math.random() * h : -30;
                 this.len = (this.z * 20) + 8;
-                this.velY = (this.z * settings.rainSpeed) + (Math.random() * 4);
+                this.velY = (this.z * RAIN_CONFIG.FALL_SPEED) + (Math.random() * 4);
                 this.opacity = this.z * 0.45;
             }
 
             fall() {
-                const currentWind = settings.baseWind + (Math.sin(windTime) * 1.2);
+                const currentWind = RAIN_CONFIG.WIND_STRENGTH + (Math.sin(windTime) * 1.2);
                 this.x += currentWind * this.z;
                 this.y += this.velY;
                 if (this.y > h) {
@@ -64,7 +71,7 @@ const RainShader: React.FC = () => {
                 ctx.beginPath();
                 ctx.strokeStyle = `rgba(180, 200, 220, ${this.opacity})`;
                 ctx.lineWidth = this.z * 1.3;
-                const currentWind = settings.baseWind + (Math.sin(windTime) * 1.2);
+                const currentWind = RAIN_CONFIG.WIND_STRENGTH + (Math.sin(windTime) * 1.2);
                 ctx.moveTo(this.x, this.y);
                 ctx.lineTo(this.x + (currentWind * this.z * 1.8), this.y + this.len);
                 ctx.stroke();
@@ -97,7 +104,7 @@ const RainShader: React.FC = () => {
 
         function initRain() {
             rainDrops = [];
-            for (let i = 0; i < settings.rainCount; i++) rainDrops.push(new Drop());
+            for (let i = 0; i < RAIN_CONFIG.DROP_COUNT; i++) rainDrops.push(new Drop());
         }
 
         function drawLightningBolt(x: number, y: number, opacity: number) {
@@ -127,7 +134,7 @@ const RainShader: React.FC = () => {
         function triggerLightning() {
             flashOpacity = 1;
             lightningType = 2;
-            nextLightningDelay = Math.random() * 8000 + 6000;
+            nextLightningDelay = Math.random() * RAIN_CONFIG.LIGHTNING_RANDOM_DELAY + RAIN_CONFIG.LIGHTNING_MIN_DELAY;
             lastLightningTime = Date.now();
             shakeDuration = 15;
             playSound('thunder');
