@@ -1153,7 +1153,7 @@ const GameHome = () => {
     }, [context?.userProfile?.user_id]);
 
     useEffect(() => {
-        // Fetch user's completed challenges count
+        // Fetch user's completed challenges count and initialize challenge status map
         const fetchData = async () => {
             // Fetch current user's challenge statuses
             if (context?.userProfile?.user_id) {

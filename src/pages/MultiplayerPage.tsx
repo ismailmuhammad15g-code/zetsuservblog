@@ -73,6 +73,8 @@ export const MultiplayerPage = () => {
 
     const handleCreateSession = async () => {
         if (!userProfile) return;
+        // gameMode and duration are guaranteed to have default values
+        // gameMode defaults to 'task_check', duration defaults to 3
         setIsCreating(true);
         const code = generateCode();
 
