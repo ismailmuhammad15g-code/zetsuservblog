@@ -15,6 +15,7 @@ export const MultiplayerPage = () => {
     const [isCopied, setIsCopied] = useState(false);
     const [gameMode, setGameMode] = useState<'task_check' | 'quiz'>('task_check');
     const [duration, setDuration] = useState(3);
+    const [showGameModeModal, setShowGameModeModal] = useState(false);
 
     // Fetch user profile
     const { data: userProfile } = useQuery({
@@ -72,6 +73,8 @@ export const MultiplayerPage = () => {
 
     const handleCreateSession = async () => {
         if (!userProfile) return;
+        // gameMode and duration are guaranteed to have default values
+        // gameMode defaults to 'task_check', duration defaults to 3
         setIsCreating(true);
         const code = generateCode();
 
@@ -91,6 +94,7 @@ export const MultiplayerPage = () => {
             if (error) throw error;
 
             setInviteCode(code);
+            setShowGameModeModal(false);
             toast.success('تم إنشاء غرفة اللعب! شارك الرمز مع صديقك 🎮');
 
         } catch (error) {
@@ -202,6 +206,90 @@ export const MultiplayerPage = () => {
 
     return (
         <div className="min-h-screen bg-slate-950 text-white p-4 pb-24 font-sans">
+            {/* Game Mode Selection Modal */}
+            {showGameModeModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+                    <div className="w-full max-w-md bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl border border-purple-500/30 shadow-2xl overflow-hidden animate-in zoom-in-95">
+                        {/* Modal Header */}
+                        <div className="relative bg-gradient-to-r from-purple-600 to-pink-600 p-4">
+                            <h3 className="text-xl font-bold text-white text-center">اختر نوع اللعبة</h3>
+                            <p className="text-purple-200 text-sm text-center mt-1">حدد طريقة التحدي التي تناسبك</p>
+                        </div>
+
+                        {/* Modal Content */}
+                        <div className="p-6 space-y-6">
+                            {/* Game Mode Selection */}
+                            <div>
+                                <label className="text-sm text-gray-400 mb-3 block font-bold">نوع اللعبة</label>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button
+                                        onClick={() => setGameMode('task_check')}
+                                        className={`p-4 rounded-xl border transition-all ${
+                                            gameMode === 'task_check'
+                                                ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/40 scale-105'
+                                                : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-purple-500/50'
+                                        }`}
+                                    >
+                                        <div className="text-3xl mb-2">✅</div>
+                                        <div className="font-bold text-sm">تحدي المهام</div>
+                                    </button>
+                                    <button
+                                        onClick={() => setGameMode('quiz')}
+                                        className={`p-4 rounded-xl border transition-all ${
+                                            gameMode === 'quiz'
+                                                ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/40 scale-105'
+                                                : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-purple-500/50'
+                                        }`}
+                                    >
+                                        <div className="text-3xl mb-2">❓</div>
+                                        <div className="font-bold text-sm">الأسئلة</div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Duration Selection (Quiz Only) */}
+                            {gameMode === 'quiz' && (
+                                <div className="animate-in fade-in slide-in-from-top-2">
+                                    <label className="text-sm text-gray-400 mb-3 block font-bold">مدة اللعبة (دقائق)</label>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {[3, 4, 5, 10].map((mins) => (
+                                            <button
+                                                key={mins}
+                                                onClick={() => setDuration(mins)}
+                                                className={`py-3 rounded-xl border text-sm font-bold transition-all ${
+                                                    duration === mins
+                                                        ? 'bg-pink-600 border-pink-500 text-white shadow-lg shadow-pink-900/40 scale-105'
+                                                        : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-pink-500/50'
+                                                }`}
+                                            >
+                                                {mins}د ⏱️
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Action Buttons */}
+                            <div className="flex gap-3 pt-4">
+                                <button
+                                    onClick={() => setShowGameModeModal(false)}
+                                    className="flex-1 py-3 bg-slate-800 border border-slate-700 text-gray-300 font-bold rounded-xl hover:bg-slate-700 transition-colors"
+                                >
+                                    إلغاء
+                                </button>
+                                <button
+                                    onClick={handleCreateSession}
+                                    disabled={isCreating}
+                                    className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-50"
+                                >
+                                    {isCreating ? 'جاري الإنشاء...' : 'إنشاء الغرفة 🎮'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Header */}
             <header className="flex items-center justify-between mb-8 pt-4">
                 <div className="flex items-center gap-2">
@@ -232,11 +320,11 @@ export const MultiplayerPage = () => {
 
                     {!inviteCode ? (
                         <button
-                            onClick={handleCreateSession}
+                            onClick={() => setShowGameModeModal(true)}
                             disabled={isCreating}
                             className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl font-bold shadow-lg shadow-purple-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
                         >
-                            {isCreating ? 'جاري الإنشاء...' : 'إنشاء غرفة جديدة 🎮'}
+                            إنشاء غرفة جديدة 🎮
                         </button>
                     ) : (
                         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
@@ -279,52 +367,6 @@ export const MultiplayerPage = () => {
                     </h3>
 
                     <div className="space-y-3">
-                        {/* Game Mode Selection */}
-                        <div className="bg-black/40 rounded-xl p-4 border border-purple-500/20">
-                            <label className="text-sm text-gray-400 mb-2 block">اختر نوع اللعبة</label>
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    onClick={() => setGameMode('task_check')}
-                                    className={`p-3 rounded-lg border text-sm font-bold transition-all ${gameMode === 'task_check'
-                                        ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/40'
-                                        : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-purple-500/50'
-                                        }`}
-                                >
-                                    ✅ تحدي المهام
-                                </button>
-                                <button
-                                    onClick={() => setGameMode('quiz')}
-                                    className={`p-3 rounded-lg border text-sm font-bold transition-all ${gameMode === 'quiz'
-                                        ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/40'
-                                        : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-purple-500/50'
-                                        }`}
-                                >
-                                    ❓ الأسئلة
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Duration Selection (Quiz Only) */}
-                        {gameMode === 'quiz' && (
-                            <div className="bg-black/40 rounded-xl p-4 border border-purple-500/20 animate-in fade-in slide-in-from-top-2">
-                                <label className="text-sm text-gray-400 mb-2 block">مدة اللعبة (دقائق)</label>
-                                <div className="grid grid-cols-4 gap-2">
-                                    {[3, 4, 5, 10].map((mins) => (
-                                        <button
-                                            key={mins}
-                                            onClick={() => setDuration(mins)}
-                                            className={`py-2 rounded-lg border text-sm font-bold transition-all ${duration === mins
-                                                ? 'bg-pink-600 border-pink-500 text-white shadow-lg shadow-pink-900/40'
-                                                : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-pink-500/50'
-                                                }`}
-                                        >
-                                            {mins}د ⏱️
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
                         <input
                             type="text"
                             placeholder="الصق رمز المشاركة هنا"

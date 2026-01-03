@@ -17,6 +17,7 @@ import { EnhancedChallenge } from '../hooks/useZersuAI';
 import WeatherDisplay from '../components/weather/WeatherDisplay';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { useSound } from '../contexts/SoundContext';
+import { TouchRipple } from '../components/TouchRipple';
 
 interface Challenge {
     id: string;
@@ -990,7 +991,7 @@ const GameHome = () => {
     const [dailyUsage, setDailyUsage] = useState(0);
     const DAILY_LIMIT = 2; // User requested limit
     const [dialogIndex, setDialogIndex] = useState(0);
-    const [stats, setStats] = useState({ players: 0, challenges: 0 });
+    const [stats, setStats] = useState({ challenges: 0 });
     const [activeTab, setActiveTab] = useState('home');
     const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
     const [showAdModal, setShowAdModal] = useState(false);
@@ -1153,18 +1154,8 @@ const GameHome = () => {
     }, [context?.userProfile?.user_id]);
 
     useEffect(() => {
-        // Fetch global stats
+        // Fetch user's completed challenges count and initialize challenge status map
         const fetchData = async () => {
-            const { data: globalStats } = await supabase.from('game_stats').select('*').eq('id', 'global').single();
-
-            if (globalStats) {
-                setStats({
-                    players: globalStats.total_players || 0,
-                    // Sum of social challenges AND game battles
-                    challenges: (globalStats.total_challenges_completed || 0) + ((globalStats as any).total_battles_completed || 0)
-                });
-            }
-
             // Fetch current user's challenge statuses
             if (context?.userProfile?.user_id) {
                 const { data: userChallenges } = await supabase
@@ -1174,7 +1165,14 @@ const GameHome = () => {
 
                 if (userChallenges) {
                     const challengeMap: Record<string, { status: string; scheduled_at: string | null }> = {};
+                    let completedCount = 0;
+                    
                     userChallenges.forEach((c: any) => {
+                        // Count completed challenges
+                        if (c.status === 'completed') {
+                            completedCount++;
+                        }
+                        
                         // Keep the most recent status (later entries override earlier ones)
                         if (!challengeMap[c.challenge_id] ||
                             c.status === 'completed' ||
@@ -1183,8 +1181,19 @@ const GameHome = () => {
                             challengeMap[c.challenge_id] = { status: c.status, scheduled_at: c.scheduled_at };
                         }
                     });
+                    
                     setPlayerChallenges(challengeMap);
+                    
+                    // Set stats: user's completed challenges
+                    setStats({
+                        challenges: completedCount
+                    });
                 }
+            } else {
+                // If no user profile, show zero
+                setStats({
+                    challenges: 0
+                });
             }
         };
         fetchData();
@@ -1254,17 +1263,19 @@ const GameHome = () => {
             )}
 
             {/* Hero Section */}
-            <div className="relative pt-8 pb-12 px-4">
-                {/* Particles */}
+            <div className="relative pt-12 pb-16 px-4">
+                {/* Enhanced Particles */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    {[...Array(15)].map((_, i) => (
+                    {[...Array(20)].map((_, i) => (
                         <div
                             key={i}
-                            className="absolute w-1 h-1 bg-purple-400 rounded-full animate-pulse"
+                            className="absolute w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse"
                             style={{
                                 left: `${Math.random() * 100}%`,
                                 top: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 2}s`
+                                animationDelay: `${Math.random() * 2}s`,
+                                filter: 'blur(1px)',
+                                opacity: 0.6
                             }}
                         />
                     ))}
@@ -1280,15 +1291,16 @@ const GameHome = () => {
                                 : "https://i.ibb.co/5gMzf6XK/zersu-challengeface.png"
                             }
                             alt="Zersu"
-                            className="relative w-48 h-48 md:w-56 md:h-56 object-contain drop-shadow-[0_0_40px_rgba(168,85,247,0.6)]"
+                            className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain drop-shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300 hover:scale-105"
                         />
                     </div>
 
                     {/* Dialog */}
-                    <div className="mb-6 max-w-sm">
-                        <div className="bg-slate-800/90 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-4 shadow-xl relative">
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-b-[12px] border-b-slate-800/90"></div>
-                            <p className="text-white text-center font-medium">{dialogs[dialogIndex]}</p>
+                    <div className="mb-8 max-w-md mx-auto">
+                        <div className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl border-2 border-purple-500/40 rounded-3xl p-6 shadow-2xl relative transform hover:scale-[1.02] transition-all duration-300">
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-b-[16px] border-b-purple-500/40"></div>
+                            <p className="text-white text-center font-bold text-lg">{dialogs[dialogIndex]}</p>
+                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 animate-pulse"></div>
                         </div>
                     </div>
 
@@ -1380,12 +1392,8 @@ const GameHome = () => {
                     {/* Stats */}
                     <div className="flex gap-4 mb-8">
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700">
-                            <Users className="w-4 h-4 text-blue-400" />
-                            <span className="text-gray-300 text-sm">{stats.players} لاعب</span>
-                        </div>
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700">
                             <Trophy className="w-4 h-4 text-yellow-400" />
-                            <span className="text-gray-300 text-sm">{stats.challenges} تحدي</span>
+                            <span className="text-gray-300 text-sm">أنجزت {stats.challenges} تحدي</span>
                         </div>
                     </div>
                 </div>
@@ -1657,6 +1665,9 @@ const ZetsuChallengePage = () => {
     return (
         <GameProvider>
             <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/40 via-[#0a0e17] to-[#050505] text-white relative overflow-hidden font-['Tajawal']">
+                
+                {/* Touch Ripple Effect */}
+                <TouchRipple />
 
                 {/* Dynamic Weather System (Background) */}
                 <WeatherDisplay />
