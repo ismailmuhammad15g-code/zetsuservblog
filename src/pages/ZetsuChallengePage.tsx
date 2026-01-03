@@ -1153,17 +1153,9 @@ const GameHome = () => {
     }, [context?.userProfile?.user_id]);
 
     useEffect(() => {
-        // Fetch global stats
+        // Fetch stats: global players count + user's completed challenges
         const fetchData = async () => {
             const { data: globalStats } = await supabase.from('game_stats').select('*').eq('id', 'global').single();
-
-            if (globalStats) {
-                setStats({
-                    players: globalStats.total_players || 0,
-                    // Sum of social challenges AND game battles
-                    challenges: (globalStats.total_challenges_completed || 0) + ((globalStats as any).total_battles_completed || 0)
-                });
-            }
 
             // Fetch current user's challenge statuses
             if (context?.userProfile?.user_id) {
@@ -1174,7 +1166,14 @@ const GameHome = () => {
 
                 if (userChallenges) {
                     const challengeMap: Record<string, { status: string; scheduled_at: string | null }> = {};
+                    let completedCount = 0;
+                    
                     userChallenges.forEach((c: any) => {
+                        // Count completed challenges
+                        if (c.status === 'completed') {
+                            completedCount++;
+                        }
+                        
                         // Keep the most recent status (later entries override earlier ones)
                         if (!challengeMap[c.challenge_id] ||
                             c.status === 'completed' ||
@@ -1183,7 +1182,22 @@ const GameHome = () => {
                             challengeMap[c.challenge_id] = { status: c.status, scheduled_at: c.scheduled_at };
                         }
                     });
+                    
                     setPlayerChallenges(challengeMap);
+                    
+                    // Set stats: global players + user's completed challenges
+                    setStats({
+                        players: globalStats?.total_players || 0,
+                        challenges: completedCount
+                    });
+                }
+            } else {
+                // If no user profile, show global stats
+                if (globalStats) {
+                    setStats({
+                        players: globalStats.total_players || 0,
+                        challenges: 0
+                    });
                 }
             }
         };
@@ -1385,7 +1399,7 @@ const GameHome = () => {
                         </div>
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700">
                             <Trophy className="w-4 h-4 text-yellow-400" />
-                            <span className="text-gray-300 text-sm">{stats.challenges} تحدي</span>
+                            <span className="text-gray-300 text-sm">أنجزت {stats.challenges} تحدي</span>
                         </div>
                     </div>
                 </div>
