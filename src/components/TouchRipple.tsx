@@ -6,7 +6,7 @@ interface Ripple {
   id: string;
 }
 
-const RIPPLE_DURATION = 800; // milliseconds
+const RIPPLE_DURATION = 400; // Faster, more subtle animation
 const RIPPLE_Z_INDEX = 9999;
 
 export const TouchRipple: React.FC = () => {
@@ -46,18 +46,22 @@ export const TouchRipple: React.FC = () => {
   return (
     <>
       <style>{`
-        @keyframes ripple-animation {
+        @keyframes cursor-tap {
           0% {
-            transform: translate(-50%, -50%) scale(0);
-            opacity: 1;
+            transform: translate(-50%, -50%) scale(0.5);
+            opacity: 0.8;
+          }
+          50% {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 0.6;
           }
           100% {
-            transform: translate(-50%, -50%) scale(30);
+            transform: translate(-50%, -50%) scale(1.5);
             opacity: 0;
           }
         }
-        .touch-ripple {
-          animation: ripple-animation ${RIPPLE_DURATION}ms ease-out;
+        .touch-ripple-cursor {
+          animation: cursor-tap ${RIPPLE_DURATION}ms ease-out forwards;
         }
       `}</style>
       <div 
@@ -67,15 +71,38 @@ export const TouchRipple: React.FC = () => {
         {ripples.map((ripple) => (
           <div
             key={ripple.id}
-            className="absolute rounded-full bg-purple-500/30 touch-ripple"
+            className="absolute touch-ripple-cursor"
             style={{
               left: ripple.x,
               top: ripple.y,
               transform: 'translate(-50%, -50%)',
-              width: '20px',
-              height: '20px',
             }}
-          />
+          >
+            {/* Elegant cursor-style indicator */}
+            <div className="relative">
+              {/* Outer ring */}
+              <div 
+                className="absolute rounded-full border-2 border-purple-400/60"
+                style={{
+                  width: '24px',
+                  height: '24px',
+                  top: '-12px',
+                  left: '-12px',
+                }}
+              />
+              {/* Inner dot */}
+              <div 
+                className="absolute rounded-full bg-gradient-to-br from-purple-400 to-pink-400"
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  top: '-4px',
+                  left: '-4px',
+                  boxShadow: '0 0 10px rgba(168, 85, 247, 0.6)',
+                }}
+              />
+            </div>
+          </div>
         ))}
       </div>
     </>
