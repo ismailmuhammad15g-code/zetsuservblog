@@ -990,7 +990,7 @@ const GameHome = () => {
     const [dailyUsage, setDailyUsage] = useState(0);
     const DAILY_LIMIT = 2; // User requested limit
     const [dialogIndex, setDialogIndex] = useState(0);
-    const [stats, setStats] = useState({ players: 0, challenges: 0 });
+    const [stats, setStats] = useState({ challenges: 0 });
     const [activeTab, setActiveTab] = useState('home');
     const [selectedChallenge, setSelectedChallenge] = useState<Challenge | null>(null);
     const [showAdModal, setShowAdModal] = useState(false);
@@ -1153,10 +1153,8 @@ const GameHome = () => {
     }, [context?.userProfile?.user_id]);
 
     useEffect(() => {
-        // Fetch stats: global players count + user's completed challenges
+        // Fetch user's completed challenges count
         const fetchData = async () => {
-            const { data: globalStats } = await supabase.from('game_stats').select('*').eq('id', 'global').single();
-
             // Fetch current user's challenge statuses
             if (context?.userProfile?.user_id) {
                 const { data: userChallenges } = await supabase
@@ -1185,20 +1183,16 @@ const GameHome = () => {
                     
                     setPlayerChallenges(challengeMap);
                     
-                    // Set stats: global players + user's completed challenges
+                    // Set stats: user's completed challenges
                     setStats({
-                        players: globalStats?.total_players || 0,
                         challenges: completedCount
                     });
                 }
             } else {
-                // If no user profile, show global stats
-                if (globalStats) {
-                    setStats({
-                        players: globalStats.total_players || 0,
-                        challenges: 0
-                    });
-                }
+                // If no user profile, show zero
+                setStats({
+                    challenges: 0
+                });
             }
         };
         fetchData();
@@ -1393,10 +1387,6 @@ const GameHome = () => {
 
                     {/* Stats */}
                     <div className="flex gap-4 mb-8">
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700">
-                            <Users className="w-4 h-4 text-blue-400" />
-                            <span className="text-gray-300 text-sm">{stats.players} لاعب</span>
-                        </div>
                         <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700">
                             <Trophy className="w-4 h-4 text-yellow-400" />
                             <span className="text-gray-300 text-sm">أنجزت {stats.challenges} تحدي</span>
