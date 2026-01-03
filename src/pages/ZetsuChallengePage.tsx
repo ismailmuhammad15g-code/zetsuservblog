@@ -17,6 +17,7 @@ import { EnhancedChallenge } from '../hooks/useZersuAI';
 import WeatherDisplay from '../components/weather/WeatherDisplay';
 import { Settings as SettingsIcon } from 'lucide-react';
 import { useSound } from '../contexts/SoundContext';
+import { TouchRipple } from '../components/TouchRipple';
 
 interface Challenge {
     id: string;
@@ -1262,17 +1263,19 @@ const GameHome = () => {
             )}
 
             {/* Hero Section */}
-            <div className="relative pt-8 pb-12 px-4">
-                {/* Particles */}
+            <div className="relative pt-12 pb-16 px-4">
+                {/* Enhanced Particles */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    {[...Array(15)].map((_, i) => (
+                    {[...Array(20)].map((_, i) => (
                         <div
                             key={i}
-                            className="absolute w-1 h-1 bg-purple-400 rounded-full animate-pulse"
+                            className="absolute w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse"
                             style={{
                                 left: `${Math.random() * 100}%`,
                                 top: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 2}s`
+                                animationDelay: `${Math.random() * 2}s`,
+                                filter: 'blur(1px)',
+                                opacity: 0.6
                             }}
                         />
                     ))}
@@ -1288,15 +1291,16 @@ const GameHome = () => {
                                 : "https://i.ibb.co/5gMzf6XK/zersu-challengeface.png"
                             }
                             alt="Zersu"
-                            className="relative w-48 h-48 md:w-56 md:h-56 object-contain drop-shadow-[0_0_40px_rgba(168,85,247,0.6)]"
+                            className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain drop-shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300 hover:scale-105"
                         />
                     </div>
 
                     {/* Dialog */}
-                    <div className="mb-6 max-w-sm">
-                        <div className="bg-slate-800/90 backdrop-blur-xl border border-purple-500/30 rounded-2xl p-4 shadow-xl relative">
-                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-b-[12px] border-b-slate-800/90"></div>
-                            <p className="text-white text-center font-medium">{dialogs[dialogIndex]}</p>
+                    <div className="mb-8 max-w-md mx-auto">
+                        <div className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl border-2 border-purple-500/40 rounded-3xl p-6 shadow-2xl relative transform hover:scale-[1.02] transition-all duration-300">
+                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-b-[16px] border-b-purple-500/40"></div>
+                            <p className="text-white text-center font-bold text-lg">{dialogs[dialogIndex]}</p>
+                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 animate-pulse"></div>
                         </div>
                     </div>
 
@@ -1661,6 +1665,9 @@ const ZetsuChallengePage = () => {
     return (
         <GameProvider>
             <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/40 via-[#0a0e17] to-[#050505] text-white relative overflow-hidden font-['Tajawal']">
+                
+                {/* Touch Ripple Effect */}
+                <TouchRipple />
 
                 {/* Dynamic Weather System (Background) */}
                 <WeatherDisplay />
