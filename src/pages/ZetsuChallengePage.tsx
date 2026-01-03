@@ -1262,117 +1262,100 @@ const GameHome = () => {
                 />
             )}
 
-            {/* Hero Section */}
-            <div className="relative pt-12 pb-16 px-4">
-                {/* Enhanced Particles */}
+            {/* Hero Section - Optimized for performance */}
+            <div className="relative pt-8 pb-12 px-4">
+                {/* Simplified Particles - Reduced count for better performance */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                    {[...Array(20)].map((_, i) => (
+                    {[...Array(10)].map((_, i) => (
                         <div
                             key={i}
-                            className="absolute w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse"
+                            className="absolute w-1.5 h-1.5 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full"
                             style={{
-                                left: `${Math.random() * 100}%`,
-                                top: `${Math.random() * 100}%`,
-                                animationDelay: `${Math.random() * 2}s`,
-                                filter: 'blur(1px)',
-                                opacity: 0.6
+                                left: `${10 + (i * 9)}%`,
+                                top: `${15 + (i * 8)}%`,
+                                animation: `pulse 2s ease-in-out ${i * 0.2}s infinite`,
+                                opacity: 0.5
                             }}
                         />
                     ))}
                 </div>
 
-                {/* Character */}
+                {/* Character Section with integrated message */}
                 <div className="relative z-10 flex flex-col items-center">
-                    <div className="relative mb-6">
-                        <div className="absolute inset-0 bg-gradient-to-t from-purple-500/50 via-pink-500/30 to-transparent blur-[60px] scale-150 animate-pulse"></div>
-                        <img
-                            src={characterMood === 'challenge'
-                                ? "https://i.ibb.co/rGMR1Q98/zersu-villhaha.png"
-                                : "https://i.ibb.co/5gMzf6XK/zersu-challengeface.png"
-                            }
-                            alt="Zersu"
-                            className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain drop-shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300 hover:scale-105"
+                    {/* Zersu Character - Larger with message at bottom */}
+                    <div className="relative mb-4">
+                        <ZersuCharacter 
+                            mood={characterMood === 'challenge' ? 'laughing' : 'challenge'} 
+                            size="hero"
+                            showMessage={true}
+                            message={dialogs[dialogIndex]}
                         />
                     </div>
 
-                    {/* Dialog */}
-                    <div className="mb-8 max-w-md mx-auto">
-                        <div className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl border-2 border-purple-500/40 rounded-3xl p-6 shadow-2xl relative transform hover:scale-[1.02] transition-all duration-300">
-                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-b-[16px] border-b-purple-500/40"></div>
-                            <p className="text-white text-center font-bold text-lg">{dialogs[dialogIndex]}</p>
-                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 animate-pulse"></div>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6">
+                    {/* Enhanced Stats Grid - Larger and more responsive */}
+                    <div className="grid grid-cols-3 gap-4 w-full max-w-xl mt-8 px-2">
                         {/* ZCoins Wallet - Premium Design */}
-                        <div className="relative group perspective-1000">
-                            <div className="absolute inset-0 bg-blue-500/20 rounded-2xl blur-xl group-hover:bg-blue-500/30 transition-all duration-500"></div>
-                            <div className="relative bg-gradient-to-br from-[#0f172a] to-[#1e1b4b] rounded-2xl p-3 border border-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.2)] overflow-hidden group-hover:scale-[1.02] transition-transform duration-300">
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-blue-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <div className="relative bg-gradient-to-br from-slate-900/90 to-blue-950/90 backdrop-blur-sm rounded-2xl p-4 border border-blue-500/30 shadow-lg overflow-hidden group-hover:scale-105 transition-transform duration-300">
                                 {/* Shine Effect */}
-                                <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:animate-shine"></div>
+                                <div className="absolute top-0 -left-full w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:left-full transition-all duration-700"></div>
 
-                                <div className="flex flex-col items-center gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">💎</span>
-                                        <span className="text-xl font-black bg-gradient-to-b from-blue-300 to-blue-600 bg-clip-text text-transparent">
-                                            {userProfile?.zcoins ?? 0}
-                                        </span>
-                                    </div>
-                                    <span className="text-[10px] font-bold text-blue-500/80 uppercase tracking-widest">ZCoins</span>
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="text-3xl md:text-4xl drop-shadow-[0_0_15px_rgba(59,130,246,0.6)]">💎</div>
+                                    <span className="text-2xl md:text-3xl font-black bg-gradient-to-b from-blue-300 to-blue-500 bg-clip-text text-transparent">
+                                        {userProfile?.zcoins ?? 0}
+                                    </span>
+                                    <span className="text-xs font-bold text-blue-400/80 uppercase tracking-wider">ZCoins</span>
                                 </div>
 
                                 {/* Action Button (Ad) */}
                                 {(userProfile?.zcoins ?? 0) < 3 && (
                                     <button
                                         onClick={() => setShowAdModal(true)}
-                                        className="mt-2 w-full bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 rounded-lg py-1 text-[10px] text-blue-200 flex items-center justify-center gap-1 transition-colors"
+                                        className="mt-3 w-full bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 rounded-xl py-2 text-xs text-blue-200 flex items-center justify-center gap-1 transition-colors"
                                     >
                                         <Tv className="w-3 h-3" />
-                                        <span>+2</span>
+                                        <span>+2 مجاناً</span>
                                     </button>
                                 )}
                             </div>
                         </div>
 
                         {/* ZGold Wallet - ULTRA PREMIUM */}
-                        <div className="relative group perspective-1000">
-                            <div className="absolute inset-0 bg-yellow-400/30 rounded-2xl blur-xl group-hover:bg-yellow-400/40 transition-all duration-500 animate-pulse"></div>
-                            <div className="relative bg-gradient-to-br from-[#422006] to-[#713f12] rounded-2xl p-3 border border-yellow-400/60 shadow-[0_0_20px_rgba(234,179,8,0.4)] overflow-hidden group-hover:scale-[1.05] transition-transform duration-300 ring-1 ring-yellow-400/50">
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-yellow-500/30 rounded-2xl blur-xl opacity-50 group-hover:opacity-100 transition-opacity duration-500 animate-pulse"></div>
+                            <div className="relative bg-gradient-to-br from-amber-950/90 to-yellow-950/90 backdrop-blur-sm rounded-2xl p-4 border border-yellow-500/50 shadow-[0_0_25px_rgba(234,179,8,0.2)] overflow-hidden group-hover:scale-105 transition-transform duration-300 ring-1 ring-yellow-500/30">
                                 {/* Shine Effect */}
-                                <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:animate-shine"></div>
+                                <div className="absolute top-0 -left-full w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:left-full transition-all duration-700"></div>
 
-                                <div className="flex flex-col items-center gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl filter drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]">🟡</span>
-                                        <span className="text-xl font-black text-yellow-300">
-                                            {userProfile?.zgold ?? 0}
-                                        </span>
-                                    </div>
-                                    <span className="text-[10px] font-bold text-yellow-500/90 uppercase tracking-widest">ZGold</span>
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="text-3xl md:text-4xl drop-shadow-[0_0_15px_rgba(250,204,21,0.6)]">🟡</div>
+                                    <span className="text-2xl md:text-3xl font-black text-yellow-300">
+                                        {userProfile?.zgold ?? 0}
+                                    </span>
+                                    <span className="text-xs font-bold text-yellow-500/80 uppercase tracking-wider">ZGold</span>
                                 </div>
 
-                                <button className="mt-2 w-full bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-400/40 rounded-lg py-1 text-[10px] text-yellow-200 flex items-center justify-center gap-1 transition-colors">
+                                <button className="mt-3 w-full bg-yellow-600/20 hover:bg-yellow-600/40 border border-yellow-500/30 rounded-xl py-2 text-xs text-yellow-200 flex items-center justify-center gap-1 transition-colors">
                                     <span>شحن</span>
                                 </button>
                             </div>
                         </div>
 
                         {/* Points Wallet - Premium Design */}
-                        <div className="relative group perspective-1000 col-span-2 md:col-span-1">
-                            <div className="absolute inset-0 bg-purple-500/20 rounded-2xl blur-xl group-hover:bg-purple-500/30 transition-all duration-500"></div>
-                            <div className="relative bg-gradient-to-br from-[#1e1b4b] to-[#312e81] rounded-2xl p-3 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.2)] overflow-hidden group-hover:scale-[1.02] transition-transform duration-300">
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-purple-500/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                            <div className="relative bg-gradient-to-br from-purple-950/90 to-slate-900/90 backdrop-blur-sm rounded-2xl p-4 border border-purple-500/30 shadow-lg overflow-hidden group-hover:scale-105 transition-transform duration-300">
                                 {/* Shine Effect */}
-                                <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:animate-shine"></div>
+                                <div className="absolute top-0 -left-full w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:left-full transition-all duration-700"></div>
 
-                                <div className="flex flex-col items-center gap-1">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">🏆</span>
-                                        <span className="text-xl font-black bg-gradient-to-b from-purple-300 to-purple-600 bg-clip-text text-transparent">
-                                            {userProfile?.points ?? 0}
-                                        </span>
-                                    </div>
-                                    <span className="text-[10px] font-bold text-purple-500/80 uppercase tracking-widest">Points</span>
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="text-3xl md:text-4xl drop-shadow-[0_0_15px_rgba(168,85,247,0.6)]">🏆</div>
+                                    <span className="text-2xl md:text-3xl font-black bg-gradient-to-b from-purple-300 to-purple-500 bg-clip-text text-transparent">
+                                        {userProfile?.points ?? 0}
+                                    </span>
+                                    <span className="text-xs font-bold text-purple-400/80 uppercase tracking-wider">Points</span>
                                 </div>
                             </div>
                         </div>
@@ -1389,11 +1372,11 @@ const GameHome = () => {
                         }}
                     />
 
-                    {/* Stats */}
-                    <div className="flex gap-4 mb-8">
-                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-800/50 rounded-lg border border-slate-700">
-                            <Trophy className="w-4 h-4 text-yellow-400" />
-                            <span className="text-gray-300 text-sm">أنجزت {stats.challenges} تحدي</span>
+                    {/* Stats Badge */}
+                    <div className="flex gap-4 mt-6">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-slate-800/60 backdrop-blur-sm rounded-xl border border-slate-700/50 shadow-lg">
+                            <Trophy className="w-5 h-5 text-yellow-400" />
+                            <span className="text-gray-200 text-sm font-medium">أنجزت <span className="text-yellow-400 font-bold">{stats.challenges}</span> تحدي</span>
                         </div>
                     </div>
                 </div>
