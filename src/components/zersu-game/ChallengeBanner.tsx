@@ -1,6 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Zap, Trophy, Swords } from 'lucide-react';
+import idleImage from '../../images/idle.png';
+import zcoinImage from '../../images/zcoin.png';
 
 const ChallengeBanner = () => {
     const navigate = useNavigate();
@@ -64,7 +66,7 @@ const ChallengeBanner = () => {
                         <span className="relative z-10 flex items-center gap-2">
                             <Swords className="w-5 h-5" />
                             ابدأ التحدي الآن
-                            <span className="text-yellow-300">💎</span>
+                            <img src={zcoinImage} className="w-5 h-5" alt="ZCoins" />
                         </span>
                     </button>
                 </div>
@@ -77,7 +79,7 @@ const ChallengeBanner = () => {
                     {/* Character image */}
                     <div className="relative">
                         <img
-                            src="https://i.ibb.co/5gMzf6XK/zersu-challengeface.png"
+                            src={idleImage}
                             alt="Zersu"
                             className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-[0_0_30px_rgba(168,85,247,0.5)] hover:drop-shadow-[0_0_50px_rgba(168,85,247,0.8)] transition-all duration-500 hover:scale-110"
                         />

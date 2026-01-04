@@ -8,6 +8,7 @@ import {
     TrendingUp, Award, Crown, Flame, Gem, Coins,
     Calendar, Globe, ChevronRight, Sparkles, Camera
 } from 'lucide-react';
+import { getXpForNextLevel, getLevelProgress } from '@/utils/levelingSystem';
 
 interface PlayerStats {
     user_id: string;
@@ -169,12 +170,7 @@ const PlayerStatsPage = () => {
         fileInputRef.current?.click();
     };
 
-    const getXpForNextLevel = (level: number) => level * 100;
-    const getXpProgress = () => {
-        if (!stats) return 0;
-        const required = getXpForNextLevel(stats.level);
-        return (stats.xp / required) * 100;
-    };
+
 
     const getWinRate = () => {
         if (!stats || stats.games_played === 0) return 0;
@@ -211,6 +207,9 @@ const PlayerStatsPage = () => {
     }
 
     const rankInfo = getRankTitle(stats.level);
+    const { level, xp } = stats;
+    const requiredXp = getXpForNextLevel(level);
+    const progress = getLevelProgress(xp, level);
 
     return (
         <div className="min-h-screen bg-[#0a0e17] text-white pb-24 md:pb-8">
@@ -309,12 +308,12 @@ const PlayerStatsPage = () => {
                             <div className="mb-4">
                                 <div className="flex items-center justify-between text-sm mb-2">
                                     <span className="text-gray-400">المستوى {stats.level}</span>
-                                    <span className="text-purple-400 font-bold">{stats.xp} / {getXpForNextLevel(stats.level)} XP</span>
+                                    <span className="text-purple-400 font-bold">{stats.xp} / {requiredXp} XP</span>
                                 </div>
                                 <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
                                     <div
                                         className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-500 relative"
-                                        style={{ width: `${getXpProgress()}%` }}
+                                        style={{ width: `${progress}%` }}
                                     >
                                         <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent"></div>
                                     </div>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Swords } from 'lucide-react';
+import idleImage from '../../images/idle.png';
 
 const MiniChallengeBanner = () => {
     const [showBanner, setShowBanner] = useState(true);
@@ -14,7 +15,7 @@ const MiniChallengeBanner = () => {
                 {/* Left side */}
                 <div className="flex items-center gap-3 flex-1 min-w-0">
                     <img
-                        src="https://i.ibb.co/5gMzf6XK/zersu-challengeface.png"
+                        src={idleImage}
                         alt="Zersu"
                         className="w-10 h-10 object-contain flex-shrink-0 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]"
                     />

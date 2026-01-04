@@ -762,6 +762,90 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_posts: {
+        Row: {
+          id: string
+          title: string
+          description: string
+          cover_image: string | null
+          is_published: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description: string
+          cover_image?: string | null
+          is_published?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string
+          cover_image?: string | null
+          is_published?: boolean
+          created_at?: string
+        }
+        Relationships: []
+      }
+      ai_documentation: {
+        Row: {
+          id: string
+          type: string
+          content: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          type: string
+          content: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          type?: string
+          content?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ai_post_config: {
+        Row: {
+          id: string
+          posts_today: number
+          max_posts_per_day: number
+          last_post_date: string | null
+          last_post_at: string | null
+          next_scheduled_at: string | null
+          is_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          posts_today?: number
+          max_posts_per_day?: number
+          last_post_date?: string | null
+          last_post_at?: string | null
+          next_scheduled_at?: string | null
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          posts_today?: number
+          max_posts_per_day?: number
+          last_post_date?: string | null
+          last_post_at?: string | null
+          next_scheduled_at?: string | null
+          is_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -781,6 +865,22 @@ export type Database = {
           user_id: string
         }
         Returns: undefined
+      }
+      can_ai_post: {
+        Args: Record<string, never>
+        Returns: boolean
+      }
+      record_ai_post: {
+        Args: Record<string, never>
+        Returns: undefined
+      }
+      get_ai_documentation_json: {
+        Args: Record<string, never>
+        Returns: Json
+      }
+      should_generate_ai_post: {
+        Args: Record<string, never>
+        Returns: boolean
       }
     }
     Enums: {

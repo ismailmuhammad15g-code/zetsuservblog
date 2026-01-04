@@ -2,6 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSound } from '@/contexts/SoundContext';
 import { Volume2, VolumeX, MessageSquare, Skull, ArrowRight, CloudRain, Sun, CloudFog, Clock } from 'lucide-react';
+import idleImage from '../images/idle.png';
 import { Slider } from '@/components/ui/slider'; // Assuming this exists or I'll use standard input
 import { Switch } from '@/components/ui/switch'; // Assuming this exists or I'll use standard input
 
@@ -15,7 +16,9 @@ const ZetsuSettingsPage: React.FC = () => {
         zersuPersonality,
         setZersuPersonality,
         weatherMode,
-        setWeatherMode
+        setWeatherMode,
+        enableAtmosphere,
+        setEnableAtmosphere
     } = useSound();
 
     return (
@@ -84,46 +87,72 @@ const ZetsuSettingsPage: React.FC = () => {
                         الطقس والأجواء
                     </h2>
 
-                    <div className="grid grid-cols-2 gap-3">
-                        <button
-                            onClick={() => setWeatherMode('auto')}
-                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${weatherMode === 'auto'
-                                ? 'bg-blue-600/20 border-blue-500 text-blue-200'
-                                : 'bg-slate-800/50 border-white/5 hover:bg-slate-800 text-slate-400'}`}
-                        >
-                            <Clock className="w-6 h-6" />
-                            <span className="font-bold">تلقائي (حسب الوقت)</span>
-                        </button>
+                    {/* Main Atmosphere Toggle */}
+                    <div className="bg-slate-800/50 rounded-xl p-4 border border-blue-500/20">
+                        <div className="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 className="font-bold text-lg mb-1">تفعيل الأجواء (مطر / ضباب)</h3>
+                                <p className="text-xs text-slate-400">
+                                    {enableAtmosphere
+                                        ? "⚠️ قد يستهلك موارد الجهاز والبطارية"
+                                        : "خلقية بنفسجية بسيطة لأداء أسرع"}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setEnableAtmosphere(!enableAtmosphere)}
+                                className={`px-6 py-2 rounded-full font-bold transition-all ${enableAtmosphere
+                                    ? 'bg-blue-600 text-white shadow-[0_0_15px_rgba(37,99,235,0.5)]'
+                                    : 'bg-slate-700 text-slate-400'
+                                    }`}
+                            >
+                                {enableAtmosphere ? "مفعل" : "معطل"}
+                            </button>
+                        </div>
 
-                        <button
-                            onClick={() => setWeatherMode('sunny')}
-                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${weatherMode === 'sunny'
-                                ? 'bg-yellow-600/20 border-yellow-500 text-yellow-200'
-                                : 'bg-slate-800/50 border-white/5 hover:bg-slate-800 text-slate-400'}`}
-                        >
-                            <Sun className="w-6 h-6" />
-                            <span className="font-bold">مشمس ☀️</span>
-                        </button>
+                        {/* Detailed Settings (Only visible if enabled) */}
+                        {enableAtmosphere && (
+                            <div className="grid grid-cols-2 gap-3 pt-4 border-t border-slate-700/50 animate-in slide-in-from-top-2">
+                                <button
+                                    onClick={() => setWeatherMode('auto')}
+                                    className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${weatherMode === 'auto'
+                                        ? 'bg-blue-600/20 border-blue-500 text-blue-200'
+                                        : 'bg-slate-800/50 border-white/5 hover:bg-slate-800 text-slate-400'}`}
+                                >
+                                    <Clock className="w-6 h-6" />
+                                    <span className="font-bold">تلقائي (حسب الوقت)</span>
+                                </button>
 
-                        <button
-                            onClick={() => setWeatherMode('rain')}
-                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${weatherMode === 'rain'
-                                ? 'bg-indigo-600/20 border-indigo-500 text-indigo-200'
-                                : 'bg-slate-800/50 border-white/5 hover:bg-slate-800 text-slate-400'}`}
-                        >
-                            <CloudRain className="w-6 h-6" />
-                            <span className="font-bold">ممطر ⛈️</span>
-                        </button>
+                                <button
+                                    onClick={() => setWeatherMode('sunny')}
+                                    className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${weatherMode === 'sunny'
+                                        ? 'bg-yellow-600/20 border-yellow-500 text-yellow-200'
+                                        : 'bg-slate-800/50 border-white/5 hover:bg-slate-800 text-slate-400'}`}
+                                >
+                                    <Sun className="w-6 h-6" />
+                                    <span className="font-bold">مشمس ☀️</span>
+                                </button>
 
-                        <button
-                            onClick={() => setWeatherMode('fog')}
-                            className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${weatherMode === 'fog'
-                                ? 'bg-gray-600/20 border-gray-400 text-gray-200'
-                                : 'bg-slate-800/50 border-white/5 hover:bg-slate-800 text-slate-400'}`}
-                        >
-                            <CloudFog className="w-6 h-6" />
-                            <span className="font-bold">ضباب 🌫️</span>
-                        </button>
+                                <button
+                                    onClick={() => setWeatherMode('rain')}
+                                    className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${weatherMode === 'rain'
+                                        ? 'bg-indigo-600/20 border-indigo-500 text-indigo-200'
+                                        : 'bg-slate-800/50 border-white/5 hover:bg-slate-800 text-slate-400'}`}
+                                >
+                                    <CloudRain className="w-6 h-6" />
+                                    <span className="font-bold">ممطر ⛈️</span>
+                                </button>
+
+                                <button
+                                    onClick={() => setWeatherMode('fog')}
+                                    className={`p-4 rounded-xl border flex flex-col items-center gap-2 transition-all ${weatherMode === 'fog'
+                                        ? 'bg-gray-600/20 border-gray-400 text-gray-200'
+                                        : 'bg-slate-800/50 border-white/5 hover:bg-slate-800 text-slate-400'}`}
+                                >
+                                    <CloudFog className="w-6 h-6" />
+                                    <span className="font-bold">ضباب 🌫️</span>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </section>
 
@@ -155,7 +184,7 @@ const ZetsuSettingsPage: React.FC = () => {
                         {/* Preview */}
                         <div className="bg-black/40 rounded-xl p-4 border border-purple-500/20 flex gap-4 items-center">
                             <img
-                                src="https://i.ibb.co/rGMR1Q98/zersu-villhaha.png"
+                                src={idleImage}
                                 alt="Zersu"
                                 className={`w-16 h-16 rounded-full border-2 ${zersuPersonality === 'sarcastic' ? 'border-red-500' : 'border-blue-500'}`}
                             />

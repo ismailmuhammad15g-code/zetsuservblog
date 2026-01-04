@@ -13,6 +13,10 @@ interface GameProfile {
     draws?: number;
     games_played?: number;
     server_region: string;
+    level?: number;
+    xp?: number;
+    total_xp?: number;
+    username?: string;
 }
 
 interface PlayerChallenge {
@@ -46,11 +50,14 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     const [activeChallenges, setActiveChallenges] = useState<PlayerChallenge[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [userId, setUserId] = useState<string | null>(null);
+    // Track if we have checked the initial session yet
+    const [isAuthReady, setIsAuthReady] = useState(false);
 
     useEffect(() => {
         // Get initial session
         supabase.auth.getSession().then(({ data: { session } }) => {
             setUserId(session?.user?.id ?? null);
+            setIsAuthReady(true);
         });
 
         // Listen for auth changes
@@ -58,12 +65,17 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((_event, session) => {
             setUserId(session?.user?.id ?? null);
+            // If we get an event, we are definitely ready
+            setIsAuthReady(true);
         });
 
         return () => subscription.unsubscribe();
     }, []);
 
     const refreshGameData = async () => {
+        // Don't fetch until we know who the user is (or isn't)
+        if (!isAuthReady) return;
+
         if (!userId) {
             setUserProfile(null);
             setActiveChallenges([]);
@@ -79,12 +91,23 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
                 .select('*')
                 .eq('user_id', userId)
                 .single();
+            // ... rest of logic stays same, but wait, need to keep the replacement clean
 
             if (profileError && profileError.code !== 'PGRST116') {
                 console.error('Error fetching game profile:', profileError);
             }
 
-            setUserProfile(profile);
+            // Fetch username from profiles
+            const { data: userProfileData } = await supabase
+                .from('profiles')
+                .select('username')
+                .eq('id', userId)
+                .single();
+
+            setUserProfile({
+                ...profile,
+                username: userProfileData?.username || 'Unknown'
+            });
 
             // Fetch active challenges
             const { data: challenges, error: challengesError } = await supabase
@@ -108,7 +131,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         refreshGameData();
-    }, [userId]);
+    }, [userId, isAuthReady]);
 
     const joinGame = async (serverRegion: string) => {
         if (!userId) return;

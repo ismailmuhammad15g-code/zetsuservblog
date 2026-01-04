@@ -280,26 +280,30 @@ const ChallengeSystem = () => {
 
     return (
         <div className="min-h-[500px] relative">
-            {/* Header with ZCoins */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-                <div>
-                    <h2 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
-                        <Sparkles className="w-5 h-5 text-purple-400" />
-                        تحدياتك الخاصة
+            {/* Premium Header with ZCoins */}
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8 relative z-10">
+                <div className="text-center md:text-right">
+                    <h2 className="text-3xl md:text-4xl font-black text-white mb-2 flex items-center justify-center md:justify-start gap-3 drop-shadow-lg">
+                        <Sparkles className="w-8 h-8 text-purple-400 animate-pulse" />
+                        <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-purple-200">
+                            تحدياتك الخاصة
+                        </span>
                     </h2>
-                    <p className="text-gray-400 text-sm">تحديات مُصممة خصيصاً لك بالذكاء الاصطناعي! 🎮</p>
+                    <p className="text-purple-200/80 text-sm font-medium">تحديات مُصممة خصيصاً لك بالذكاء الاصطناعي! 🎮</p>
                 </div>
 
-                {/* ZCoins Display */}
-                <div className="relative">
-                    <div className="absolute inset-0 bg-yellow-500/30 blur-xl rounded-full"></div>
-                    <div className="relative bg-gradient-to-r from-yellow-600 to-amber-500 px-5 py-2 rounded-xl border border-yellow-400/50 shadow-lg">
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl">💎</span>
-                            <div>
-                                <div className="text-[10px] text-yellow-200/80 uppercase">رصيدك</div>
-                                <div className="text-xl font-black text-white">{userProfile?.zcoins ?? 0}</div>
-                            </div>
+                {/* Glassmorphic ZCoins Display */}
+                <div className="relative group">
+                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 blur-xl rounded-2xl group-hover:bg-yellow-500/30 transition-all duration-500"></div>
+                    <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-3 rounded-2xl shadow-xl flex items-center gap-4 transition-transform hover:scale-105 duration-300">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-orange-600 flex items-center justify-center shadow-lg border-2 border-yellow-300/50">
+                            <span className="text-2xl animate-bounce">💎</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[10px] text-yellow-200/90 uppercase tracking-widest font-bold">رصيدك الحالي</span>
+                            <span className="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 to-amber-100 filter drop-shadow-sm">
+                                {userProfile?.zcoins?.toLocaleString() ?? 0}
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -384,17 +388,22 @@ const ChallengeSystem = () => {
 
                     <div className="p-6">
                         <div className="flex flex-col lg:flex-row gap-6">
-                            <div className="lg:w-1/3 flex flex-col items-center">
+                            <div className="lg:w-1/3 flex flex-col items-center relative min-h-[300px]">
                                 <ZersuCharacter
-                                    mood={challengeStatus === 'failed' ? 'laughing' : challengeStatus === 'completed' ? 'sad' : 'challenge'}
-                                    size="medium"
+                                    type="idle"
+                                    size="large"
+                                    className="z-10"
                                 />
-                                <div className="mt-3 bg-slate-700/50 rounded-lg p-3 text-center max-w-[200px]">
-                                    <p className="text-gray-300 text-xs italic">
-                                        {challengeStatus === 'active' ? `"أراني الدليل! 😈"` :
-                                            challengeStatus === 'verifying' ? `"جاري التحقق..."` :
-                                                challengeStatus === 'completed' ? `"لا بأس... 😤"` : `"هاهاها! 🤣"`}
-                                    </p>
+                                {/* Integrated Message Bubble */}
+                                <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-20 w-full max-w-[240px]">
+                                    <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-4 shadow-xl relative animate-in slide-in-from-bottom-4 duration-500">
+                                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-b-[10px] border-b-white/10"></div>
+                                        <p className="text-white text-sm font-medium text-center italic leading-relaxed">
+                                            {challengeStatus === 'active' ? `"أرني ما لديك يا بطل! 😈"` :
+                                                challengeStatus === 'verifying' ? `"دعني أرى... مممم 🤔"` :
+                                                    challengeStatus === 'completed' ? `"تباً! لقد فعلتها... 😤"` : `"هاهاها! حاولت جيداً! 🤣"`}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
 

@@ -6,6 +6,7 @@ import BottomNavigation from '@/components/zersu-game/BottomNavigation';
 import { Navbar } from '@/components/Navbar';
 import { Timer, Target, ChevronRight, Loader2, Clock, Zap, Sparkles, Swords, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import idleImage from '../images/idle.png';
 
 interface ScheduledChallenge {
     id: string;
@@ -205,7 +206,7 @@ const ActiveTasksContent: React.FC = () => {
                                 <div className="relative inline-block mb-6">
                                     <div className="absolute inset-0 bg-purple-500/30 blur-[40px] rounded-full"></div>
                                     <img
-                                        src="https://i.ibb.co/5gMzf6XK/zersu-challengeface.png"
+                                        src={idleImage}
                                         alt="Zersu"
                                         className="relative w-32 h-32 object-contain drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]"
                                     />

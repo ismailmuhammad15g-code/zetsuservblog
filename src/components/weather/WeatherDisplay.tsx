@@ -10,7 +10,16 @@ type WeatherType = 'rain' | 'fog' | 'sunny';
 const WeatherDisplay: React.FC = () => {
     const [autoWeather, setAutoWeather] = useState<WeatherType>('rain');
     const [isDay, setIsDay] = useState(false);
-    const { isMuted, masterVolume, weatherMode } = useSound();
+    const { isMuted, masterVolume, weatherMode, enableAtmosphere } = useSound();
+
+    if (!enableAtmosphere) {
+        // Return simple lightweight background as requested
+        return (
+            <div className="fixed inset-0 w-full h-full z-0 pointer-events-none bg-[#0a0e17]">
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-900/10 via-black to-slate-900/20" />
+            </div>
+        );
+    }
 
     // Track if audio has been initialized after user interaction
     const [audioInitialized, setAudioInitialized] = useState(false);

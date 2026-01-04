@@ -1,13 +1,16 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { Copy, Users, Swords, ArrowRight, Check } from 'lucide-react';
+import { Copy, Users, Swords, ArrowRight, Check, Skull } from 'lucide-react';
 import { toast } from 'sonner';
 import BottomNavigation from '@/components/zersu-game/BottomNavigation';
+import RainEffect from "@/components/RainEffect";
 
 export const MultiplayerPage = () => {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const isHorrorMode = searchParams.get('type') === 'horror';
     const [inviteCode, setInviteCode] = useState('');
     const [joinCode, setJoinCode] = useState('');
     const [isCreating, setIsCreating] = useState(false);
@@ -125,6 +128,15 @@ export const MultiplayerPage = () => {
                 return;
             }
 
+
+            // Prevent self-play
+            // @ts-ignore
+            if (session.host_id === userProfile.id) {
+                toast.error('لا يمكنك الانضمام إلى غرفتك الخاصة! 🚫');
+                setIsJoining(false);
+                return;
+            }
+
             // Join session
             const { error: updateError } = await supabase
                 .from('game_sessions')
@@ -205,7 +217,11 @@ export const MultiplayerPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white p-4 pb-24 font-sans">
+        <div className={`min-h-screen text-white p-4 pb-24 font-sans ${isHorrorMode
+            ? 'bg-black text-red-100'
+            : 'bg-slate-950'
+            }`}>
+            {isHorrorMode && <RainEffect />}
             {/* Game Mode Selection Modal */}
             {showGameModeModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
@@ -224,22 +240,20 @@ export const MultiplayerPage = () => {
                                 <div className="grid grid-cols-2 gap-3">
                                     <button
                                         onClick={() => setGameMode('task_check')}
-                                        className={`p-4 rounded-xl border transition-all ${
-                                            gameMode === 'task_check'
-                                                ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/40 scale-105'
-                                                : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-purple-500/50'
-                                        }`}
+                                        className={`p-4 rounded-xl border transition-all ${gameMode === 'task_check'
+                                            ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/40 scale-105'
+                                            : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-purple-500/50'
+                                            }`}
                                     >
                                         <div className="text-3xl mb-2">✅</div>
                                         <div className="font-bold text-sm">تحدي المهام</div>
                                     </button>
                                     <button
                                         onClick={() => setGameMode('quiz')}
-                                        className={`p-4 rounded-xl border transition-all ${
-                                            gameMode === 'quiz'
-                                                ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/40 scale-105'
-                                                : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-purple-500/50'
-                                        }`}
+                                        className={`p-4 rounded-xl border transition-all ${gameMode === 'quiz'
+                                            ? 'bg-purple-600 border-purple-500 text-white shadow-lg shadow-purple-900/40 scale-105'
+                                            : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-purple-500/50'
+                                            }`}
                                     >
                                         <div className="text-3xl mb-2">❓</div>
                                         <div className="font-bold text-sm">الأسئلة</div>
@@ -256,11 +270,10 @@ export const MultiplayerPage = () => {
                                             <button
                                                 key={mins}
                                                 onClick={() => setDuration(mins)}
-                                                className={`py-3 rounded-xl border text-sm font-bold transition-all ${
-                                                    duration === mins
-                                                        ? 'bg-pink-600 border-pink-500 text-white shadow-lg shadow-pink-900/40 scale-105'
-                                                        : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-pink-500/50'
-                                                }`}
+                                                className={`py-3 rounded-xl border text-sm font-bold transition-all ${duration === mins
+                                                    ? 'bg-pink-600 border-pink-500 text-white shadow-lg shadow-pink-900/40 scale-105'
+                                                    : 'bg-slate-900 border-gray-700 text-gray-400 hover:border-pink-500/50'
+                                                    }`}
                                             >
                                                 {mins}د ⏱️
                                             </button>
@@ -290,22 +303,32 @@ export const MultiplayerPage = () => {
                 </div>
             )}
 
-            {/* Header */}
             <header className="flex items-center justify-between mb-8 pt-4">
                 <div className="flex items-center gap-2">
-                    <div className="p-2 bg-purple-600 rounded-xl shadow-lg shadow-purple-500/20">
-                        <Swords className="w-6 h-6 text-white" />
+                    <div className={`p-2 rounded-xl shadow-lg ${isHorrorMode ? 'bg-red-800 shadow-red-500/20' : 'bg-purple-600 shadow-purple-500/20'
+                        }`}>
+                        <Swords className={`w-6 h-6 ${isHorrorMode ? 'text-red-200' : 'text-white'}`} />
                     </div>
-                    <h1 className="text-2xl font-black bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                        قتال الأصدقاء
+                    <h1 className={`text-2xl font-black bg-clip-text text-transparent ${isHorrorMode
+                        ? 'bg-red-600 drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]'
+                        : 'bg-gradient-to-r from-purple-400 to-pink-400'
+                        }`}>
+                        {isHorrorMode ? 'ساحة الموت' : 'قتال الأصدقاء'}
                     </h1>
                 </div>
             </header>
 
             <div className="space-y-8 max-w-md mx-auto">
                 {/* Hero Section */}
+                {isHorrorMode && (
+                    <div className="flex justify-center mb-6 animate-pulse">
+                        <Skull className="w-16 h-16 text-red-600 drop-shadow-[0_0_15px_rgba(220,38,38,0.5)]" />
+                    </div>
+                )}
                 <div className="text-center space-y-2 mb-8">
-                    <h2 className="text-3xl font-bold">1VS1</h2>
+                    <h2 className={`text-3xl font-bold ${isHorrorMode ? 'text-red-500 font-nosifer' : ''}`}>
+                        {isHorrorMode ? '1 VS 1' : '1VS1'}
+                    </h2>
                     <p className="text-gray-400">تحدى صديقك في سباق لإنجاز المهام!</p>
                 </div>
 
@@ -313,18 +336,22 @@ export const MultiplayerPage = () => {
                 <section className="bg-slate-900/50 backdrop-blur-sm border border-purple-500/20 rounded-2xl p-6 relative overflow-hidden group hover:border-purple-500/40 transition-all">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all pointer-events-none" />
 
-                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <Users className="w-5 h-5 text-purple-400" />
-                        العب مع صديق
+                    <h3 className={`text-xl font-bold mb-4 flex items-center gap-2 ${isHorrorMode ? 'text-red-500' : ''
+                        }`}>
+                        <Users className={`w-5 h-5 ${isHorrorMode ? 'text-red-600' : 'text-purple-400'}`} />
+                        {isHorrorMode ? 'تضحية مشتركة' : 'العب مع صديق'}
                     </h3>
 
                     {!inviteCode ? (
                         <button
                             onClick={() => setShowGameModeModal(true)}
                             disabled={isCreating}
-                            className="w-full py-4 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-xl font-bold shadow-lg shadow-purple-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                            className={`w-full py-4 rounded-xl font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 ${isHorrorMode
+                                ? 'bg-red-900 hover:bg-red-800 text-white border border-red-700 shadow-red-900/20'
+                                : 'bg-gradient-to-r from-purple-600 to-indigo-600 shadow-purple-900/20'
+                                }`}
                         >
-                            إنشاء غرفة جديدة 🎮
+                            {isHorrorMode ? 'فتح بوابة الجحيم 🩸' : 'إنشاء غرفة جديدة 🎮'}
                         </button>
                     ) : (
                         <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4">
@@ -361,9 +388,10 @@ export const MultiplayerPage = () => {
                 <section className="bg-slate-900/50 backdrop-blur-sm border border-pink-500/20 rounded-2xl p-6 relative overflow-hidden group hover:border-pink-500/40 transition-all">
                     <div className="absolute bottom-0 left-0 w-32 h-32 bg-pink-500/10 rounded-full blur-3xl group-hover:bg-pink-500/20 transition-all pointer-events-none" />
 
-                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-                        <ArrowRight className="w-5 h-5 text-pink-400" />
-                        انضم لغرفة
+                    <h3 className={`text-xl font-bold mb-4 flex items-center gap-2 ${isHorrorMode ? 'text-red-500' : ''
+                        }`}>
+                        <ArrowRight className={`w-5 h-5 ${isHorrorMode ? 'text-red-600' : 'text-pink-400'}`} />
+                        {isHorrorMode ? 'دخول الهاوية' : 'انضم لغرفة'}
                     </h3>
 
                     <div className="space-y-3">
@@ -377,9 +405,12 @@ export const MultiplayerPage = () => {
                         <button
                             onClick={handleJoinSession}
                             disabled={!joinCode || isJoining}
-                            className="w-full py-4 bg-gradient-to-r from-pink-600 to-rose-600 rounded-xl font-bold shadow-lg shadow-pink-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                            className={`w-full py-4 rounded-xl font-bold shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${isHorrorMode
+                                ? 'bg-red-950 hover:bg-black text-red-500 border border-red-900 shadow-red-900/10'
+                                : 'bg-gradient-to-r from-pink-600 to-rose-600 shadow-pink-900/20'
+                                }`}
                         >
-                            {isJoining ? 'جاري الاتصال...' : 'انضمام للتحدي 🚀'}
+                            {isJoining ? 'جاري الاتصال...' : isHorrorMode ? 'مواجهة المصير 💀' : 'انضمام للتحدي 🚀'}
                         </button>
                     </div>
                 </section>

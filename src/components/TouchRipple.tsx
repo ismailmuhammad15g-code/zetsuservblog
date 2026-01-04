@@ -48,26 +48,28 @@ export const TouchRipple: React.FC = () => {
       <style>{`
         @keyframes ripple-animation {
           0% {
-            transform: translate(-50%, -50%) scale(0);
+            transform: translate(-50%, -50%) scale(0.5);
             opacity: 1;
+            border-width: 4px;
           }
           100% {
-            transform: translate(-50%, -50%) scale(30);
+            transform: translate(-50%, -50%) scale(2);
             opacity: 0;
+            border-width: 0px;
           }
         }
         .touch-ripple {
-          animation: ripple-animation ${RIPPLE_DURATION}ms ease-out;
+          animation: ripple-animation ${RIPPLE_DURATION}ms cubic-bezier(0.4, 0, 0.2, 1);
         }
       `}</style>
-      <div 
-        className="fixed inset-0 pointer-events-none overflow-hidden" 
+      <div
+        className="fixed inset-0 pointer-events-none overflow-hidden"
         style={{ zIndex: RIPPLE_Z_INDEX }}
       >
         {ripples.map((ripple) => (
           <div
             key={ripple.id}
-            className="absolute rounded-full bg-purple-500/30 touch-ripple"
+            className="absolute rounded-full border-2 border-purple-400/80 bg-transparent shadow-[0_0_10px_rgba(168,85,247,0.5)] touch-ripple"
             style={{
               left: ripple.x,
               top: ripple.y,

@@ -105,7 +105,7 @@ const GameLoginFlow = () => {
                         <div className="relative py-4 group">
                             <div className="absolute inset-0 bg-red-500/5 blur-[40px] group-hover:bg-red-500/10 transition-all duration-700"></div>
                             <div className="relative transform hover:scale-105 transition-transform duration-300">
-                                <ZersuCharacter mood="laughing" size="medium" />
+                                <ZersuCharacter type="idle" size="medium" />
                             </div>
                             <p className="text-red-400/80 italic text-sm mt-4 font-serif">
                                 "Ha! You think you can enter MY arena without a name?
@@ -181,7 +181,7 @@ const GameLoginFlow = () => {
                                 <div className="flex-shrink-0">
                                     <div className="relative">
                                         <div className="absolute inset-0 bg-purple-500/30 blur-2xl rounded-full"></div>
-                                        <ZersuCharacter mood="challenge" size="large" />
+                                        <ZersuCharacter type="idle" size="large" />
                                     </div>
                                 </div>
 

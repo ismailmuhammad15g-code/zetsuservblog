@@ -19,6 +19,11 @@ import { Settings as SettingsIcon } from 'lucide-react';
 import { useSound } from '../contexts/SoundContext';
 import { TouchRipple } from '../components/TouchRipple';
 
+import idleImage from '../images/idle.png';
+import zcoinImage from '../images/zcoin.png';
+import zgoldImage from '../images/zgold.png';
+import { awardXp, getLevelProgress, getXpForNextLevel } from '@/utils/levelingSystem';
+
 interface Challenge {
     id: string;
     title: string;
@@ -78,7 +83,7 @@ const VerifyingScreen = () => {
         <div className="text-center py-8 space-y-6">
             <div className="relative">
                 <img
-                    src="https://i.ibb.co/rGMR1Q98/zersu-villhaha.png"
+                    src={idleImage}
                     alt="Zersu"
                     className="w-28 h-28 mx-auto rounded-full animate-pulse"
                     style={{ filter: 'drop-shadow(0 0 20px rgba(168, 85, 247, 0.6))' }}
@@ -211,7 +216,13 @@ const ChallengeModal = ({
                 scheduleNotification(challenge.id, challenge.title, scheduledAt);
             }
 
-            toast.success(`تم خصم ${challenge.cost} 💎 وجدولة التحدي`);
+            toast.success(
+                <div className="flex items-center gap-2">
+                    <span>تم خصم {challenge.cost}</span>
+                    <img src={zcoinImage} className="w-4 h-4" alt="ZCoins" />
+                    <span>وجدولة التحدي</span>
+                </div>
+            );
             onClose();
             navigate('/zetsuchallenge/active-tasks');
         }
@@ -254,7 +265,12 @@ const ChallengeModal = ({
                     .eq('user_id', userProfile.user_id)
                     .eq('challenge_id', challenge.id);
 
-                toast.error('حدث خطأ في التحقق - تم استرداد عملاتك 💎');
+                toast.error(
+                    <div className="flex items-center gap-2">
+                        <span>حدث خطأ في التحقق - تم استرداد عملاتك</span>
+                        <img src={zcoinImage} className="w-4 h-4" alt="ZCoins" />
+                    </div>
+                );
                 // await refreshGameData(); // Do not refresh here to avoid re-rendering issues
                 setStep('upload'); // Go back to upload step
                 return;
@@ -268,6 +284,9 @@ const ChallengeModal = ({
                 await supabase.from('game_profiles')
                     .update({ zcoins: currentCoins + challenge.reward })
                     .eq('user_id', userProfile.user_id);
+
+                // Award XP
+                await awardXp(userProfile.user_id, challenge.reward * 10); // 10 XP per ZCoin reward (example formula)
 
                 await supabase.from('player_challenges')
                     .update({
@@ -337,7 +356,13 @@ const ChallengeModal = ({
                 console.error('Refund error:', refundError);
             }
 
-            toast.error('حدث خطأ - تم استرداد عملاتك 💎 تواصل مع مدير الموقع');
+            toast.error(
+                <div className="flex items-center gap-2">
+                    <span>حدث خطأ - تم استرداد عملاتك</span>
+                    <img src={zcoinImage} className="w-4 h-4" alt="ZCoins" />
+                    <span>تواصل مع مدير الموقع</span>
+                </div>
+            );
             setStep('upload'); // Go back to upload
         }
     };
@@ -401,7 +426,7 @@ const ChallengeModal = ({
                             <div className="space-y-6">
                                 {/* Character */}
                                 <div className="flex justify-center">
-                                    <ZersuCharacter mood="challenge" size="medium" />
+                                    <ZersuCharacter type="idle" size="medium" />
                                 </div>
 
                                 <p className="text-gray-300 text-center">{challenge.description}</p>
@@ -409,22 +434,34 @@ const ChallengeModal = ({
                                 {/* Cost/Reward */}
                                 <div className="grid grid-cols-3 gap-3">
                                     <div className="bg-red-500/20 border border-red-500/30 rounded-xl p-3 text-center">
-                                        <div className="text-red-400 font-bold">-{challenge.cost} 💎</div>
+                                        <div className="text-red-400 font-bold flex items-center justify-center gap-1">
+                                            <span>-{challenge.cost}</span>
+                                            <img src={zcoinImage} className="w-4 h-4" alt="ZCoins" />
+                                        </div>
                                         <div className="text-xs text-gray-500">التكلفة</div>
                                     </div>
                                     <div className="bg-green-500/20 border border-green-500/30 rounded-xl p-3 text-center">
-                                        <div className="text-green-400 font-bold">+{challenge.reward} 💎</div>
+                                        <div className="text-green-400 font-bold flex items-center justify-center gap-1">
+                                            <span>+{challenge.reward}</span>
+                                            <img src={zcoinImage} className="w-4 h-4" alt="ZCoins" />
+                                        </div>
                                         <div className="text-xs text-gray-500">المكافأة</div>
                                     </div>
                                     <div className="bg-orange-500/20 border border-orange-500/30 rounded-xl p-3 text-center">
-                                        <div className="text-orange-400 font-bold">-{challenge.failurePenalty} 💎</div>
+                                        <div className="text-orange-400 font-bold flex items-center justify-center gap-1">
+                                            <span>-{challenge.failurePenalty}</span>
+                                            <img src={zcoinImage} className="w-4 h-4" alt="ZCoins" />
+                                        </div>
                                         <div className="text-xs text-gray-500">عند الفشل</div>
                                     </div>
                                 </div>
 
                                 {!canAfford && (
                                     <div className="text-center text-red-400 bg-red-500/10 rounded-lg p-3">
-                                        ⚠️ لا تملك عملات كافية! تحتاج {challenge.cost} 💎
+                                        <span className="flex items-center gap-1 justify-center">
+                                            ⚠️ لا تملك عملات كافية! تحتاج {challenge.cost}
+                                            <img src={zcoinImage} className="w-4 h-4 inline" alt="ZCoins" />
+                                        </span>
                                     </div>
                                 )}
 
@@ -443,7 +480,7 @@ const ChallengeModal = ({
                                 {/* Zersu asking when */}
                                 <div className="flex justify-center">
                                     <img
-                                        src="https://i.ibb.co/rGMR1Q98/zersu-villhaha.png"
+                                        src={idleImage}
                                         alt="Zersu"
                                         className="w-32 h-32 object-contain drop-shadow-[0_0_20px_rgba(168,85,247,0.5)]"
                                     />
@@ -525,7 +562,7 @@ const ChallengeModal = ({
                         {step === 'upload' && (
                             <div className="space-y-6">
                                 <div className="flex justify-center">
-                                    <ZersuCharacter mood="challenge" size="small" />
+                                    <ZersuCharacter type="idle" size="small" />
                                 </div>
 
                                 <div className="text-center">
@@ -580,7 +617,7 @@ const ChallengeModal = ({
                         {step === 'result' && (
                             <div className="text-center py-8 space-y-6 animate-in zoom-in">
                                 <div className="flex justify-center">
-                                    <ZersuCharacter mood={result === 'success' ? 'sad' : 'laughing'} size="medium" />
+                                    <ZersuCharacter type="idle" size="medium" />
                                 </div>
 
                                 {result === 'success' ? (
@@ -590,7 +627,7 @@ const ChallengeModal = ({
                                         </div>
                                         <h3 className="text-2xl font-black text-green-400">نجاح! 🎉</h3>
                                         <div className="inline-flex items-center gap-2 px-6 py-3 bg-green-500/20 rounded-full border border-green-500/50">
-                                            <span className="text-2xl">💎</span>
+                                            <img src={zcoinImage} className="w-8 h-8" alt="ZCoins" />
                                             <span className="text-xl font-bold text-green-400">+{challenge.reward}</span>
                                         </div>
                                         {/* Zersu's AI-generated reaction */}
@@ -606,7 +643,7 @@ const ChallengeModal = ({
                                         </div>
                                         <h3 className="text-2xl font-black text-red-400">فشل! 💀</h3>
                                         <div className="inline-flex items-center gap-2 px-6 py-3 bg-red-500/20 rounded-full border border-red-500/50">
-                                            <span className="text-2xl">💎</span>
+                                            <img src={zcoinImage} className="w-8 h-8" alt="ZCoins" />
                                             <span className="text-xl font-bold text-red-400">-{challenge.failurePenalty}</span>
                                         </div>
                                         {/* Zersu's AI-generated reaction */}
@@ -804,7 +841,7 @@ const CreateChallengeModal = ({
                             <div className="relative">
                                 <div className="absolute inset-0 bg-red-500/20 blur-[60px] rounded-full animate-pulse"></div>
                                 <img
-                                    src="https://i.ibb.co/rGMR1Q98/zersu-villhaha.png"
+                                    src={idleImage}
                                     alt="Zersu Laughing"
                                     className="relative w-40 h-40 mx-auto object-contain drop-shadow-[0_0_30px_rgba(220,38,38,0.6)] animate-bounce"
                                 />
@@ -864,7 +901,7 @@ const CreateChallengeModal = ({
                                 <div className="absolute inset-0 border-4 border-red-500/30 rounded-full animate-[spin_3s_linear_infinite]"></div>
                                 <div className="absolute inset-2 border-4 border-t-red-500 rounded-full animate-spin"></div>
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <img src="https://i.ibb.co/rGMR1Q98/zersu-villhaha.png" className="w-16 h-16 opacity-50" />
+                                    <img src={idleImage} className="w-16 h-16 opacity-50" alt="Zersu" />
                                 </div>
                             </div>
                             <div>
@@ -878,7 +915,7 @@ const CreateChallengeModal = ({
                         <div className="space-y-6 animate-in zoom-in-95">
                             {/* AI Mockery */}
                             <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex gap-4 items-start">
-                                <img src="https://i.ibb.co/rGMR1Q98/zersu-villhaha.png" className="w-12 h-12 rounded-full bg-slate-900" />
+                                <img src={idleImage} className="w-12 h-12 rounded-full bg-slate-900" alt="Zersu" />
                                 <div>
                                     <p className="text-red-300 font-bold text-sm mb-1">Zersu يقول:</p>
                                     <p className="text-white italic">"{enhancedChallenge.mockeryAr}"</p>
@@ -900,11 +937,11 @@ const CreateChallengeModal = ({
                                 <div className="flex items-center gap-4 text-sm border-t border-slate-800 pt-3">
                                     <div className="flex items-center gap-1 text-red-400">
                                         <span>-{enhancedChallenge.cost}</span>
-                                        <span>💎 تكلفة</span>
+                                        <span><img src={zcoinImage} className="w-3 h-3 inline" alt="ZCoins" /> تكلفة</span>
                                     </div>
                                     <div className="flex items-center gap-1 text-green-400">
                                         <span>+{enhancedChallenge.reward}</span>
-                                        <span>💎 مكافأة</span>
+                                        <span><img src={zcoinImage} className="w-3 h-3 inline" alt="ZCoins" /> مكافأة</span>
                                     </div>
                                 </div>
                             </div>
@@ -1166,13 +1203,13 @@ const GameHome = () => {
                 if (userChallenges) {
                     const challengeMap: Record<string, { status: string; scheduled_at: string | null }> = {};
                     let completedCount = 0;
-                    
+
                     userChallenges.forEach((c: any) => {
                         // Count completed challenges
                         if (c.status === 'completed') {
                             completedCount++;
                         }
-                        
+
                         // Keep the most recent status (later entries override earlier ones)
                         if (!challengeMap[c.challenge_id] ||
                             c.status === 'completed' ||
@@ -1181,9 +1218,9 @@ const GameHome = () => {
                             challengeMap[c.challenge_id] = { status: c.status, scheduled_at: c.scheduled_at };
                         }
                     });
-                    
+
                     setPlayerChallenges(challengeMap);
-                    
+
                     // Set stats: user's completed challenges
                     setStats({
                         challenges: completedCount
@@ -1211,12 +1248,36 @@ const GameHome = () => {
     if (!context) return null;
     const { userProfile, isLoading, refreshGameData } = context;
 
-    if (isLoading) {
+    // Non-blocking load
+    if (isLoading && !userProfile) {
+        // Only block if we strictly need profile to render ANYTHING, but we can probably show a skeleton. 
+        // For now, let's just show a minimal loader that doesn't block the whole screen visually or just nothing?
+        // User said: "It always shows 'Loading Arena', making it boring".
+        // Let's replace it with a transparent/minimal loader or just let it flow.
+        /* 
         return (
-            <div className="min-h-screen bg-[#0a0e17] flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-12 h-12 text-purple-500 animate-spin mx-auto mb-4" />
-                    <p className="text-purple-400 font-bold animate-pulse">جاري تحميل الساحة...</p>
+           <div className="min-h-screen bg-[#0a0e17] flex items-center justify-center">
+               ...
+           </div>
+        );
+        */
+        // Better: Return a skeleton loading state or just null and let the parent handle it? 
+        // Actually, if I remove this, `userProfile` might be null below.
+        // Let's keep a Skeleton instead of a black screen text.
+    }
+
+    if (isLoading) {
+        // Return a skeleton structure instead of blocking screen
+        return (
+            <div className="min-h-screen bg-[#0a0e17] p-4">
+                <div className="animate-pulse space-y-4 max-w-2xl mx-auto pt-20">
+                    <div className="h-64 bg-slate-800/50 rounded-3xl"></div>
+                    <div className="h-20 bg-slate-800/50 rounded-2xl"></div>
+                    <div className="grid grid-cols-3 gap-3">
+                        <div className="h-24 bg-slate-800/50 rounded-2xl"></div>
+                        <div className="h-24 bg-slate-800/50 rounded-2xl"></div>
+                        <div className="h-24 bg-slate-800/50 rounded-2xl"></div>
+                    </div>
                 </div>
             </div>
         );
@@ -1286,35 +1347,46 @@ const GameHome = () => {
                     <div className="relative mb-6">
                         <div className="absolute inset-0 bg-gradient-to-t from-purple-500/50 via-pink-500/30 to-transparent blur-[60px] scale-150 animate-pulse"></div>
                         <img
-                            src={characterMood === 'challenge'
-                                ? "https://i.ibb.co/rGMR1Q98/zersu-villhaha.png"
-                                : "https://i.ibb.co/5gMzf6XK/zersu-challengeface.png"
-                            }
+                            src={idleImage}
                             alt="Zersu"
-                            className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain drop-shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300 hover:scale-105"
+                            className="relative w-64 h-64 md:w-80 md:h-80 lg:w-96 lg:h-96 object-contain drop-shadow-[0_0_40px_rgba(168,85,247,0.6)] transition-all duration-300 hover:scale-105 z-10"
+                            style={{
+                                maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+                                WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
+                            }}
                         />
                     </div>
 
-                    {/* Dialog */}
-                    <div className="mb-8 max-w-md mx-auto">
-                        <div className="bg-gradient-to-br from-slate-800/95 to-slate-900/95 backdrop-blur-xl border-2 border-purple-500/40 rounded-3xl p-6 shadow-2xl relative transform hover:scale-[1.02] transition-all duration-300">
-                            <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[16px] border-l-transparent border-r-[16px] border-r-transparent border-b-[16px] border-b-purple-500/40"></div>
-                            <p className="text-white text-center font-bold text-lg">{dialogs[dialogIndex]}</p>
-                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-purple-500/0 via-purple-500/10 to-purple-500/0 animate-pulse"></div>
+                    {/* Dialog - AAA Design */}
+                    <div className="mb-8 max-w-md mx-auto -mt-16 relative z-30">
+                        <div className="bg-slate-900/80 backdrop-blur-md border border-purple-500/50 rounded-3xl p-6 shadow-[0_0_30px_rgba(168,85,247,0.3)] relative transform hover:scale-[1.02] transition-all duration-300 overflow-hidden group">
+                            {/* Animated Border Glow */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+
+                            {/* Speech Bubble Triangle */}
+                            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-b-[12px] border-b-purple-500/50"></div>
+
+                            {/* Text Content */}
+                            <p className="text-white text-center font-black text-xl drop-shadow-[0_0_10px_rgba(168,85,247,0.8)] leading-relaxed">
+                                {dialogs[dialogIndex]}
+                            </p>
+
+                            {/* Inner Ambient Glow */}
+                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-purple-500/5 via-transparent to-pink-500/5 pointer-events-none"></div>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mt-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-5 mt-8 px-2">
                         {/* ZCoins Wallet - Premium Design */}
-                        <div className="relative group perspective-1000">
+                        <div className="relative group Perspective-1000 z-10 hover:z-20">
                             <div className="absolute inset-0 bg-blue-500/20 rounded-2xl blur-xl group-hover:bg-blue-500/30 transition-all duration-500"></div>
-                            <div className="relative bg-gradient-to-br from-[#0f172a] to-[#1e1b4b] rounded-2xl p-3 border border-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.2)] overflow-hidden group-hover:scale-[1.02] transition-transform duration-300">
+                            <div className="relative bg-gradient-to-br from-[#0f172a] to-[#1e1b4b] rounded-2xl p-4 border border-blue-500/40 shadow-[0_0_15px_rgba(59,130,246,0.2)] overflow-hidden group-hover:scale-[1.05] transition-transform duration-300 h-full flex flex-col justify-between">
                                 {/* Shine Effect */}
                                 <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:animate-shine"></div>
 
-                                <div className="flex flex-col items-center gap-1">
+                                <div className="flex flex-col items-center gap-2">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-2xl drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]">💎</span>
+                                        <img src={zcoinImage} alt="ZCoins" className="w-8 h-8 drop-shadow-[0_0_10px_rgba(59,130,246,0.8)]" />
                                         <span className="text-xl font-black bg-gradient-to-b from-blue-300 to-blue-600 bg-clip-text text-transparent">
                                             {userProfile?.zcoins ?? 0}
                                         </span>
@@ -1326,7 +1398,7 @@ const GameHome = () => {
                                 {(userProfile?.zcoins ?? 0) < 3 && (
                                     <button
                                         onClick={() => setShowAdModal(true)}
-                                        className="mt-2 w-full bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 rounded-lg py-1 text-[10px] text-blue-200 flex items-center justify-center gap-1 transition-colors"
+                                        className="mt-3 w-full bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/30 rounded-lg py-1.5 text-[10px] text-blue-200 flex items-center justify-center gap-1 transition-colors"
                                     >
                                         <Tv className="w-3 h-3" />
                                         <span>+2</span>
@@ -1336,15 +1408,15 @@ const GameHome = () => {
                         </div>
 
                         {/* ZGold Wallet - ULTRA PREMIUM */}
-                        <div className="relative group perspective-1000">
+                        <div className="relative group Perspective-1000 z-10 hover:z-20">
                             <div className="absolute inset-0 bg-yellow-400/30 rounded-2xl blur-xl group-hover:bg-yellow-400/40 transition-all duration-500 animate-pulse"></div>
-                            <div className="relative bg-gradient-to-br from-[#422006] to-[#713f12] rounded-2xl p-3 border border-yellow-400/60 shadow-[0_0_20px_rgba(234,179,8,0.4)] overflow-hidden group-hover:scale-[1.05] transition-transform duration-300 ring-1 ring-yellow-400/50">
+                            <div className="relative bg-gradient-to-br from-[#422006] to-[#713f12] rounded-2xl p-4 border border-yellow-400/60 shadow-[0_0_20px_rgba(234,179,8,0.4)] overflow-hidden group-hover:scale-[1.08] transition-transform duration-300 ring-1 ring-yellow-400/50 h-full flex flex-col justify-between">
                                 {/* Shine Effect */}
                                 <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 group-hover:animate-shine"></div>
 
-                                <div className="flex flex-col items-center gap-1">
+                                <div className="flex flex-col items-center gap-2">
                                     <div className="flex items-center gap-2">
-                                        <span className="text-2xl filter drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]">🟡</span>
+                                        <img src={zgoldImage} alt="ZGold" className="w-8 h-8 filter drop-shadow-[0_0_10px_rgba(250,204,21,0.8)]" />
                                         <span className="text-xl font-black text-yellow-300">
                                             {userProfile?.zgold ?? 0}
                                         </span>
@@ -1352,20 +1424,20 @@ const GameHome = () => {
                                     <span className="text-[10px] font-bold text-yellow-500/90 uppercase tracking-widest">ZGold</span>
                                 </div>
 
-                                <button className="mt-2 w-full bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-400/40 rounded-lg py-1 text-[10px] text-yellow-200 flex items-center justify-center gap-1 transition-colors">
+                                <button className="mt-3 w-full bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-400/40 rounded-lg py-1.5 text-[10px] text-yellow-200 flex items-center justify-center gap-1 transition-colors">
                                     <span>شحن</span>
                                 </button>
                             </div>
                         </div>
 
                         {/* Points Wallet - Premium Design */}
-                        <div className="relative group perspective-1000 col-span-2 md:col-span-1">
+                        <div className="relative group Perspective-1000 col-span-2 md:col-span-1 z-0 hover:z-10">
                             <div className="absolute inset-0 bg-purple-500/20 rounded-2xl blur-xl group-hover:bg-purple-500/30 transition-all duration-500"></div>
-                            <div className="relative bg-gradient-to-br from-[#1e1b4b] to-[#312e81] rounded-2xl p-3 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.2)] overflow-hidden group-hover:scale-[1.02] transition-transform duration-300">
+                            <div className="relative bg-gradient-to-br from-[#1e1b4b] to-[#312e81] rounded-2xl p-4 border border-purple-500/40 shadow-[0_0_15px_rgba(168,85,247,0.2)] overflow-hidden group-hover:scale-[1.02] transition-transform duration-300 h-full flex flex-col justify-center">
                                 {/* Shine Effect */}
                                 <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent skew-x-12 group-hover:animate-shine"></div>
 
-                                <div className="flex flex-col items-center gap-1">
+                                <div className="flex flex-col items-center gap-2">
                                     <div className="flex items-center gap-2">
                                         <span className="text-2xl drop-shadow-[0_0_10px_rgba(168,85,247,0.8)]">🏆</span>
                                         <span className="text-xl font-black bg-gradient-to-b from-purple-300 to-purple-600 bg-clip-text text-transparent">
@@ -1645,6 +1717,56 @@ const GameHome = () => {
 
 // Main Page
 
+const UserStatsBar = () => {
+    const { userProfile } = useGame();
+
+    if (!userProfile) return null;
+
+    const level = userProfile.level || 1;
+    const xp = userProfile.xp || 0;
+    const requiredXp = getXpForNextLevel(level);
+    const progress = getLevelProgress(xp, level);
+
+    return (
+        <div className="bg-slate-900/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-30 pt-16 pb-2 px-4 shadow-xl">
+            <div className="container mx-auto max-w-lg">
+                <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center border border-white/20 shadow-lg">
+                            <span className="font-black text-xs text-white">LV.{level}</span>
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-xs text-purple-200 font-bold leading-none mb-0.5">{userProfile.username}</span>
+                            <span className="text-[10px] text-purple-400 font-mono">{xp}/{requiredXp} XP</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 bg-black/40 px-2 py-0.5 rounded-lg border border-yellow-500/20">
+                            <img src={zcoinImage} className="w-4 h-4" alt="ZCoins" />
+                            <span className="text-yellow-400 font-bold text-xs">{userProfile.zcoins.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 bg-black/40 px-2 py-0.5 rounded-lg border border-amber-500/20">
+                            <img src={zgoldImage} className="w-4 h-4" alt="ZGold" />
+                            <span className="text-amber-400 font-bold text-xs">{userProfile.zgold.toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Progress Bar */}
+                <div className="h-1.5 w-full bg-slate-800 rounded-full overflow-hidden relative">
+                    <div
+                        className="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-full transition-all duration-700 ease-out relative"
+                        style={{ width: `${progress}%` }}
+                    >
+                        <div className="absolute inset-0 bg-white/20 animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const ZetsuChallengePage = () => {
     const navigate = useNavigate();
 
@@ -1665,7 +1787,7 @@ const ZetsuChallengePage = () => {
     return (
         <GameProvider>
             <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/40 via-[#0a0e17] to-[#050505] text-white relative overflow-hidden font-['Tajawal']">
-                
+
                 {/* Touch Ripple Effect */}
                 <TouchRipple />
 
@@ -1678,9 +1800,12 @@ const ZetsuChallengePage = () => {
                     <div className="absolute w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[80px] bottom-0 right-0 mix-blend-overlay"></div>
                 </div>
 
-                <div className="relative z-10">
+                <div className="relative z-20">
                     <Navbar />
+                    <UserStatsBar />
                 </div>
+
+
 
                 <div className="relative z-10 pt-20">
                     {/* Header with Settings Button */}

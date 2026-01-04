@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
 import Post from "./pages/Post";
+import AiPost from "./pages/AiPost";
 import About from "./pages/About";
 import Auth from "./pages/Auth";
 import Register from "./pages/Register";
@@ -29,6 +30,7 @@ import { MultiplayerPage } from "./pages/MultiplayerPage";
 import { VsChallengePage } from "./pages/VsChallengePage";
 import QuizGamePage from "./pages/QuizGamePage";
 import PlayerStatsPage from "./pages/PlayerStatsPage";
+import ZersuDocPage from "./pages/ZersuDocPage";
 
 import { SoundProvider } from "./contexts/SoundContext";
 import { GameProvider } from "./contexts/GameContext";
@@ -51,6 +53,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/post/:slug" element={<Post />} />
+              <Route path="/ai-post/:id" element={<AiPost />} />
               <Route path="/about" element={<About />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/register" element={<Register />} />
@@ -69,6 +72,7 @@ const App = () => (
               <Route path="/vschallenge/:sessionId" element={<VsChallengePage />} />
               <Route path="/quiz/:sessionId" element={<QuizGamePage />} />
               <Route path="/player-stats" element={<PlayerStatsPage />} />
+              <Route path="/admin/doc" element={<ZersuDocPage />} />
 
               {/* User posts (canonical + legacy aliases) */}
               <Route path="/:username/post" element={<UserPosts />} />

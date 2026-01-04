@@ -29,3 +29,7 @@ config/gcp-storage.json
 
 .env
 deploy.bat
+
+supabase/functions/generate-ai-post/service-account.json
+
+*.timestamp-*.mjs

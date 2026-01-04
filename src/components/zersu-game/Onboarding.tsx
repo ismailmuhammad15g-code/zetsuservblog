@@ -39,7 +39,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onComplete }) => {
     return (
         <div className="onboarding-container dark-background flex flex-col items-center justify-center h-full w-full absolute top-0 left-0 z-50">
             <div className="character-animation mb-8 animate-in fade-in zoom-in duration-500">
-                <ZersuCharacter mood={currentPhase.mood} size="large" />
+                <ZersuCharacter type="idle" size="large" />
                 <div className="speech-bubble animate-in slide-in-from-bottom-5 duration-500">
                     {currentPhase.text}
                 </div>

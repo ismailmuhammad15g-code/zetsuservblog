@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Gift, X, Loader2, Package, Sparkles, ExternalLink } from 'lucide-react';
+import zcoinImage from '../../images/zcoin.png';
 
 interface AdRewardModalProps {
     isOpen: boolean;
@@ -127,7 +128,7 @@ const AdRewardModal: React.FC<AdRewardModalProps> = ({
                     <div className="text-center">
                         <div className="inline-flex items-center gap-2 px-4 py-2 bg-yellow-500/20 rounded-full border border-yellow-500/30">
                             <Gift className="w-5 h-5 text-yellow-400" />
-                            <span className="text-yellow-300 font-bold text-lg">+{REWARD_AMOUNT} 💎 ZCoins</span>
+                            <span className="text-yellow-300 font-bold text-lg flex items-center gap-1">+{REWARD_AMOUNT} <img src={zcoinImage} className="w-5 h-5" alt="ZCoins" /> ZCoins</span>
                         </div>
                     </div>
 

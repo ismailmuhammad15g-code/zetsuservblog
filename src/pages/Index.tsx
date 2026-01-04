@@ -5,10 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Layout } from "@/components/Layout";
 import { PostCard } from "@/components/PostCard";
 import { SearchAndFilter } from "@/components/SearchAndFilter";
-import { Loader2, TrendingUp, Clock, Sparkles, Crown, Users, ArrowRight, Pin } from "lucide-react";
+import { Loader2, TrendingUp, Clock, Sparkles, Crown, Users, ArrowRight, Pin, Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MiniChallengeBanner from "@/components/zersu-game/MiniChallengeBanner";
 import { HeaderAd, InContentAd, SidebarAd } from "@/components/ads";
+import { ZersuAIPostCard } from "@/components/ZersuAIPostCard";
 
 type SortOption = "latest" | "popular" | "trending";
 
@@ -56,6 +57,63 @@ export default function Index() {
       if (error) throw error;
       return data;
     },
+  });
+
+  // Fetch AI Posts
+  const { data: aiPosts = [] } = useQuery({
+    queryKey: ["ai-posts-homepage"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ai_posts")
+        .select("*")
+        .eq("is_published", true)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (error) {
+        console.warn("AI posts query failed:", error.message);
+        return [];
+      }
+      return data;
+    },
+  });
+
+  // Opportunistic AI Post Generation (The "Living Site" Feature)
+  useQuery({
+    queryKey: ["check-ai-trigger"],
+    queryFn: async () => {
+      // 1. Check if we SHOULD post (cheap DB check)
+      const { data: shouldPost } = await supabase.rpc("should_generate_ai_post");
+
+      if (shouldPost) {
+        console.log("🤖 Zersu AI is waking up to post...");
+        // 2. Trigger generation (Fire and forget, or wait for result)
+        // We use fetch directly to call the Edge Function
+        // 2. Trigger generation (Fire and forget, or wait for result)
+        // We use supabase.functions.invoke to handle CORS properly
+        try {
+          // We don't await the result strictly, as we want to be non-blocking mostly,
+          // but invoke is async. We just fire it.
+          const { error } = await supabase.functions.invoke('generate-ai-post', {
+            body: {}
+          });
+
+          if (error) {
+            console.error("❌ Zersu AI trigger error:", error);
+          } else {
+            console.log("✅ Zersu AI trigger sent successfully");
+          }
+        } catch (e) {
+          console.error("❌ Failed to trigger Zersu AI:", e);
+        }
+      }
+      return shouldPost;
+    },
+    // Run this check infrequently (e.g. once per session or reload)
+    staleTime: 1000 * 60 * 60, // 1 hour
+    gcTime: 1000 * 60 * 60, // 1 hour
+    refetchOnWindowFocus: false,
+    retry: false
   });
 
   // Separate admin posts from community posts, with pinned posts first
@@ -331,6 +389,41 @@ export default function Index() {
                 </div>
               )}
             </section>
+
+            {/* Zersu's AI Posts Section */}
+            {aiPosts.length > 0 && (
+              <section className="mt-16">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500/20 to-violet-600/10 border border-purple-500/30">
+                    <Bot className="h-5 w-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-semibold tracking-tight flex items-center gap-2">
+                      Zersu's Posts
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                        AI
+                      </span>
+                    </h2>
+                    <p className="text-sm text-muted-foreground">
+                      منشورات من zersu
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-4 animate-slide-up">
+                  {aiPosts.map((post) => (
+                    <ZersuAIPostCard
+                      key={post.id}
+                      id={post.id}
+                      title={post.title}
+                      description={post.description}
+                      coverImage={post.cover_image}
+                      createdAt={post.created_at}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
           </>
         )}
       </div>

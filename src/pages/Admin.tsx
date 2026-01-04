@@ -12,12 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 import { AnnouncementManager } from "@/components/admin/AnnouncementManager";
 import { CategoryManager } from "@/components/admin/CategoryManager";
 import { notifyAllUsersNewPost } from "@/hooks/useSendPushNotification";
-import { 
-  Loader2, 
-  LogOut, 
-  Plus, 
-  Pencil, 
-  Trash2, 
+import {
+  Loader2,
+  LogOut,
+  Plus,
+  Pencil,
+  Trash2,
   Eye,
   ArrowLeft,
   X,
@@ -28,7 +28,8 @@ import {
   PinOff,
   Clock,
   CalendarClock,
-  BarChart3
+  BarChart3,
+  Bot
 } from "lucide-react";
 import { AdminStats } from "@/components/admin/AdminStats";
 import { Link } from "react-router-dom";
@@ -74,7 +75,7 @@ export default function Admin() {
   useEffect(() => {
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (!session) {
         navigate("/auth");
         return;
@@ -89,13 +90,13 @@ export default function Admin() {
         .eq("user_id", session.user.id);
 
       const hasAdminRole = roles?.some(r => r.role === "admin") ?? false;
-      
+
       if (!hasAdminRole) {
         // Redirect non-admin users to homepage
         navigate("/");
         return;
       }
-      
+
       setIsAdmin(hasAdminRole);
       setCheckingAuth(false);
     };
@@ -133,15 +134,15 @@ export default function Admin() {
       const scheduledAt = data.scheduled_at ? new Date(data.scheduled_at).toISOString() : null;
       const isNewPost = !data.id;
       const isPublishing = data.published && !scheduledAt;
-      
+
       let savedPost: Post | null = null;
-      
+
       if (data.id) {
         // Check if we're publishing an existing unpublished post
         const existingPost = posts?.find(p => p.id === data.id);
         const wasUnpublished = existingPost && !existingPost.published;
         const isNowPublishing = isPublishing && wasUnpublished;
-        
+
         const { data: updatedData, error } = await supabase
           .from("posts")
           .update({
@@ -158,7 +159,7 @@ export default function Admin() {
           .single();
 
         if (error) throw error;
-        
+
         if (isNowPublishing && updatedData) {
           savedPost = updatedData as Post;
         }
@@ -174,12 +175,12 @@ export default function Admin() {
         }).select().single();
 
         if (error) throw error;
-        
+
         if (isPublishing && insertedData) {
           savedPost = insertedData as Post;
         }
       }
-      
+
       // Send push notification if publishing a new post
       if (savedPost && isPublishing) {
         notifyAllUsersNewPost({
@@ -198,10 +199,10 @@ export default function Admin() {
       resetForm();
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Error", 
-        description: error.message, 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
       });
     },
   });
@@ -217,10 +218,10 @@ export default function Admin() {
       toast({ title: "Deleted", description: "Post deleted successfully" });
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Error", 
-        description: error.message, 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
       });
     },
   });
@@ -229,7 +230,7 @@ export default function Admin() {
     mutationFn: async ({ id, isPinned }: { id: string; isPinned: boolean }) => {
       const { error } = await supabase
         .from("posts")
-        .update({ 
+        .update({
           is_pinned: isPinned,
           pinned_at: isPinned ? new Date().toISOString() : null
         })
@@ -239,16 +240,16 @@ export default function Admin() {
     onSuccess: (_, { isPinned }) => {
       queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
       queryClient.invalidateQueries({ queryKey: ["posts"] });
-      toast({ 
-        title: isPinned ? "Pinned" : "Unpinned", 
-        description: isPinned ? "Post pinned to top" : "Post unpinned" 
+      toast({
+        title: isPinned ? "Pinned" : "Unpinned",
+        description: isPinned ? "Post pinned to top" : "Post unpinned"
       });
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Error", 
-        description: error.message, 
-        variant: "destructive" 
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
       });
     },
   });
@@ -338,8 +339,8 @@ export default function Admin() {
       <header className="border-b border-border">
         <div className="container flex items-center justify-between h-16">
           <div className="flex items-center gap-4">
-            <Link 
-              to="/" 
+            <Link
+              to="/"
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -376,6 +377,12 @@ export default function Admin() {
               <Megaphone className="h-4 w-4" />
               Announcements
             </TabsTrigger>
+            <Link to="/admin/doc">
+              <div className="inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-muted gap-2 text-purple-400 border border-purple-500/30 ml-2">
+                <Bot className="h-4 w-4" />
+                Zersu AI
+              </div>
+            </Link>
           </TabsList>
 
           <TabsContent value="stats">
@@ -479,7 +486,7 @@ export default function Admin() {
                     <Switch
                       id="published"
                       checked={formData.published}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         setFormData({ ...formData, published: checked })
                       }
                       disabled={!!formData.scheduled_at}
@@ -547,11 +554,10 @@ export default function Admin() {
                                     Scheduled
                                   </span>
                                 ) : (
-                                  <span className={`text-xs px-2 py-1 rounded ${
-                                    post.published 
-                                      ? "bg-primary/10 text-primary" 
+                                  <span className={`text-xs px-2 py-1 rounded ${post.published
+                                      ? "bg-primary/10 text-primary"
                                       : "bg-muted text-muted-foreground"
-                                  }`}>
+                                    }`}>
                                     {post.published ? "Published" : "Draft"}
                                   </span>
                                 )}
@@ -590,15 +596,15 @@ export default function Admin() {
                                     </Button>
                                   </Link>
                                 )}
-                                <Button 
-                                  variant="ghost" 
+                                <Button
+                                  variant="ghost"
                                   size="sm"
                                   onClick={() => handleEdit(post)}
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
-                                <Button 
-                                  variant="ghost" 
+                                <Button
+                                  variant="ghost"
                                   size="sm"
                                   onClick={() => {
                                     if (confirm("Delete this post?")) {

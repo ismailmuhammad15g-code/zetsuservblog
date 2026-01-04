@@ -12,6 +12,8 @@ interface SoundContextType {
     setZersuPersonality: (type: 'sarcastic' | 'polite') => void;
     weatherMode: 'auto' | 'sunny' | 'rain' | 'fog';
     setWeatherMode: (mode: 'auto' | 'sunny' | 'rain' | 'fog') => void;
+    enableAtmosphere: boolean;
+    setEnableAtmosphere: (enabled: boolean) => void;
 }
 
 const SoundContext = createContext<SoundContextType>({
@@ -24,6 +26,8 @@ const SoundContext = createContext<SoundContextType>({
     setZersuPersonality: () => { },
     weatherMode: 'auto',
     setWeatherMode: () => { },
+    enableAtmosphere: false,
+    setEnableAtmosphere: () => { },
 });
 
 export const useSound = () => useContext(SoundContext);
@@ -47,7 +51,11 @@ export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         return (saved === 'sunny' || saved === 'rain' || saved === 'fog') ? saved : 'auto';
     });
 
-    // Persist changes
+    const [enableAtmosphere, setEnableAtmosphere] = useState<boolean>(() => {
+        const saved = localStorage.getItem('zetsu_atmosphere_enabled');
+        return saved === 'true'; // Default false
+    });
+
     useEffect(() => {
         localStorage.setItem('zetsu_master_volume', masterVolume.toString());
     }, [masterVolume]);
@@ -59,6 +67,10 @@ export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     useEffect(() => {
         localStorage.setItem('zetsu_weather_mode', weatherMode);
     }, [weatherMode]);
+
+    useEffect(() => {
+        localStorage.setItem('zetsu_atmosphere_enabled', String(enableAtmosphere));
+    }, [enableAtmosphere]);
 
     const audioContextRef = useRef<AudioContext | null>(null);
 
@@ -333,7 +345,9 @@ export const SoundProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             zersuPersonality,
             setZersuPersonality,
             weatherMode,
-            setWeatherMode
+            setWeatherMode,
+            enableAtmosphere,
+            setEnableAtmosphere
         }}>
             {children}
         </SoundContext.Provider>

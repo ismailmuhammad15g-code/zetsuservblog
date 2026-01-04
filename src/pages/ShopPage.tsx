@@ -4,6 +4,9 @@ import BottomNavigation from '@/components/zersu-game/BottomNavigation';
 import { supabase } from '@/integrations/supabase/client';
 import { ShoppingBag, Sparkles, Palette, Music, Image, Check, Crown, Zap, Shield, Gem } from 'lucide-react';
 import { toast } from 'sonner';
+import shopkeeperImage from '../images/shopkeeper.png';
+import zcoinImage from '../images/zcoin.png';
+import zgoldImage from '../images/zgold.png';
 
 interface ShopItem {
     id: string;
@@ -215,6 +218,41 @@ const ShopPage = () => {
                     </p>
                 </div>
 
+                {/* Shopkeeper Character with Golden Glow */}
+                <div className="relative flex justify-center mb-10">
+                    {/* Multiple golden glow layers */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-80 h-80 bg-yellow-500/30 rounded-full blur-[80px] animate-pulse" />
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-64 h-64 bg-amber-400/40 rounded-full blur-[60px] animate-pulse" style={{ animationDelay: '0.5s' }} />
+                    </div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="w-48 h-48 bg-yellow-300/50 rounded-full blur-[40px] animate-pulse" style={{ animationDelay: '1s' }} />
+                    </div>
+
+                    {/* Shopkeeper Image */}
+                    <div className="relative group">
+                        <img
+                            src={shopkeeperImage}
+                            alt="Zersu Shopkeeper"
+                            className="relative z-10 w-64 h-64 md:w-80 md:h-80 object-contain drop-shadow-[0_0_40px_rgba(234,179,8,0.8)] transition-all duration-500 hover:scale-110 hover:drop-shadow-[0_0_60px_rgba(234,179,8,1)]"
+                        />
+
+                        {/* Animated sparkles */}
+                        <div className="absolute top-0 right-5 w-3 h-3 bg-yellow-400 rounded-full animate-ping" style={{ animationDuration: '1.5s' }} />
+                        <div className="absolute top-10 left-0 w-2 h-2 bg-amber-300 rounded-full animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
+                        <div className="absolute bottom-10 right-0 w-2 h-2 bg-yellow-300 rounded-full animate-ping" style={{ animationDuration: '1.8s', animationDelay: '1s' }} />
+
+                        {/* Speech bubble */}
+                        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-20 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 backdrop-blur-md border border-yellow-500/30 rounded-2xl px-6 py-3 shadow-xl">
+                            <p className="text-yellow-300 text-sm font-bold text-center whitespace-nowrap">
+                                "أهلاً يا بطل! هل لديك ما يكفي؟ 💰"
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Wallet Overview */}
                 <div className="grid grid-cols-2 gap-4 mb-10 max-w-lg mx-auto">
                     {/* ZGold Wallet */}
@@ -226,7 +264,7 @@ const ShopPage = () => {
                                 <p className="text-2xl font-black text-yellow-300 drop-shadow-md">{userProfile?.zgold ?? 0}</p>
                             </div>
                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-700 flex items-center justify-center shadow-lg border border-yellow-300/30">
-                                <span className="text-2xl filter drop-shadow">🟡</span>
+                                <img src={zgoldImage} alt="ZGold" className="w-8 h-8 filter drop-shadow" />
                             </div>
                         </div>
                         <button className="mt-3 w-full py-2 bg-yellow-500/20 hover:bg-yellow-500/30 border border-yellow-500/30 rounded-xl text-yellow-300 text-xs font-bold transition-all flex items-center justify-center gap-2">
@@ -244,7 +282,7 @@ const ShopPage = () => {
                                 <p className="text-2xl font-black text-blue-300 drop-shadow-md">{userProfile?.zcoins ?? 0}</p>
                             </div>
                             <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-700 flex items-center justify-center shadow-lg border border-blue-300/30">
-                                <span className="text-2xl filter drop-shadow">💎</span>
+                                <img src={zcoinImage} alt="ZCoins" className="w-8 h-8 filter drop-shadow" />
                             </div>
                         </div>
                         <button className="mt-3 w-full py-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 rounded-xl text-blue-300 text-xs font-bold transition-all flex items-center justify-center gap-2">
@@ -308,7 +346,11 @@ const ShopPage = () => {
 
                                     <div className="mt-auto flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-1.5">
-                                            <span className="text-lg">{item.currency === 'zgold' ? '🟡' : '💎'}</span>
+                                            <img
+                                                src={item.currency === 'zgold' ? zgoldImage : zcoinImage}
+                                                alt={item.currency}
+                                                className="w-5 h-5 object-contain"
+                                            />
                                             <span className={`text-xl font-black ${item.currency === 'zgold' ? 'text-yellow-400' : 'text-blue-400'}`}>
                                                 {item.price}
                                             </span>

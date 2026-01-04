@@ -26,9 +26,9 @@ serve(async (req: Request) => {
         }
 
         // Validate folder to prevent arbitrary directory writing
-        const allowedFolders = ['posts', 'avatars', 'covers', 'profileimg']
+        const allowedFolders = ['posts', 'avatars', 'covers', 'profileimg', 'ai-posts']
         if (!allowedFolders.includes(folder)) {
-            throw new Error('Invalid folder. Must be posts, avatars, covers, or profileimg.')
+            throw new Error('Invalid folder. Must be posts, avatars, covers, profileimg, or ai-posts.')
         }
 
         // Initialize Storage
