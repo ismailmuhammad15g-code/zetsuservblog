@@ -161,19 +161,7 @@ const ShopPage = () => {
                 return;
             }
 
-            // Deduct currency from game_profiles
-            const updateData = item.currency === 'zgold'
-                ? { zgold: userProfile.zgold - item.price }
-                : { zcoins: userProfile.zcoins - item.price };
-
-            const { error: updateError } = await supabase
-                .from('game_profiles')
-                .update(updateData)
-                .eq('user_id', user.id);
-
-            if (updateError) throw updateError;
-
-            // Add item to user inventory
+            // First, add item to inventory (this will fail if duplicate)
             const { error: inventoryError } = await supabase
                 .from('user_inventory')
                 .insert({
@@ -187,7 +175,35 @@ const ShopPage = () => {
                     is_equipped: false
                 });
 
-            if (inventoryError) throw inventoryError;
+            if (inventoryError) {
+                // If duplicate, show appropriate message
+                if (inventoryError.code === '23505') { // Unique violation
+                    toast.info('لديك هذا العنصر بالفعل!');
+                } else {
+                    throw inventoryError;
+                }
+                return;
+            }
+
+            // Only deduct currency after inventory insert succeeds
+            const updateData = item.currency === 'zgold'
+                ? { zgold: userProfile.zgold - item.price }
+                : { zcoins: userProfile.zcoins - item.price };
+
+            const { error: updateError } = await supabase
+                .from('game_profiles')
+                .update(updateData)
+                .eq('user_id', user.id);
+
+            if (updateError) {
+                // Rollback: Remove the inventory item we just added
+                await supabase
+                    .from('user_inventory')
+                    .delete()
+                    .eq('user_id', user.id)
+                    .eq('item_id', item.id);
+                throw updateError;
+            }
 
             // Update local state
             setUserProfile(prev => prev ? { ...prev, ...updateData } : null);

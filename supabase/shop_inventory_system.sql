@@ -162,7 +162,19 @@ AS $$
 DECLARE
     v_already_claimed BOOLEAN;
     v_reward_amount INTEGER := 10;
+    v_profile_exists BOOLEAN;
 BEGIN
+    -- Check if user has a game profile
+    SELECT EXISTS(
+        SELECT 1 FROM public.game_profiles 
+        WHERE user_id = p_user_id
+    ) INTO v_profile_exists;
+    
+    IF NOT v_profile_exists THEN
+        RETURN QUERY SELECT false, 'User profile not found'::TEXT, 0;
+        RETURN;
+    END IF;
+    
     -- Check if already claimed today
     SELECT EXISTS(
         SELECT 1 FROM public.daily_rewards 
@@ -226,7 +238,20 @@ AS $$
 DECLARE
     v_already_completed BOOLEAN;
     v_reward_amount INTEGER;
+    v_profile_exists BOOLEAN;
+    v_rows_updated INTEGER;
 BEGIN
+    -- Check if user has a game profile
+    SELECT EXISTS(
+        SELECT 1 FROM public.game_profiles 
+        WHERE user_id = p_user_id
+    ) INTO v_profile_exists;
+    
+    IF NOT v_profile_exists THEN
+        RETURN QUERY SELECT false, 'User profile not found'::TEXT, 0;
+        RETURN;
+    END IF;
+    
     -- Get mission reward
     SELECT reward_zcoins INTO v_reward_amount
     FROM public.daily_missions
@@ -262,6 +287,14 @@ BEGIN
     SET zcoins = zcoins + v_reward_amount,
         updated_at = now()
     WHERE user_id = p_user_id;
+    
+    -- Verify update succeeded
+    GET DIAGNOSTICS v_rows_updated = ROW_COUNT;
+    
+    IF v_rows_updated = 0 THEN
+        RETURN QUERY SELECT false, 'Failed to update profile'::TEXT, 0;
+        RETURN;
+    END IF;
     
     RETURN QUERY SELECT true, 'Mission completed successfully'::TEXT, v_reward_amount;
 END;
