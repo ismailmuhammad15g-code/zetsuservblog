@@ -314,9 +314,136 @@ BEGIN
 END $$;
 
 -- ============================================
+-- 7. COUPON REDEMPTION SYSTEM
+-- ============================================
+
+-- Table to track coupon redemptions
+CREATE TABLE IF NOT EXISTS public.coupon_redemptions (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  coupon_code TEXT NOT NULL,
+  redeemed_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  reward_amount INTEGER NOT NULL,
+  reward_currency TEXT NOT NULL CHECK (reward_currency IN ('zcoins', 'zgold')),
+  UNIQUE(user_id, coupon_code)
+);
+
+ALTER TABLE public.coupon_redemptions ENABLE ROW LEVEL SECURITY;
+
+-- Policies for coupon_redemptions
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'coupon_redemptions' AND policyname = 'Users can view own redemptions') THEN
+        CREATE POLICY "Users can view own redemptions" 
+        ON public.coupon_redemptions FOR SELECT 
+        TO authenticated 
+        USING (auth.uid() = user_id);
+    END IF;
+    
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'coupon_redemptions' AND policyname = 'Users can insert own redemptions') THEN
+        CREATE POLICY "Users can insert own redemptions" 
+        ON public.coupon_redemptions FOR INSERT 
+        TO authenticated 
+        WITH CHECK (auth.uid() = user_id);
+    END IF;
+END $$;
+
+-- Function to redeem a coupon code
+CREATE OR REPLACE FUNCTION public.redeem_coupon(p_user_id UUID, p_coupon_code TEXT)
+RETURNS TABLE(success BOOLEAN, message TEXT, reward_amount INTEGER, reward_currency TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_profile_exists BOOLEAN;
+    v_already_redeemed BOOLEAN;
+    v_reward_amount INTEGER;
+    v_reward_currency TEXT;
+    v_is_admin BOOLEAN;
+    v_can_redeem BOOLEAN := false;
+BEGIN
+    -- Check if user has a game profile
+    SELECT EXISTS(
+        SELECT 1 FROM public.game_profiles 
+        WHERE user_id = p_user_id
+    ) INTO v_profile_exists;
+    
+    IF NOT v_profile_exists THEN
+        RETURN QUERY SELECT false, 'User profile not found'::TEXT, 0, ''::TEXT;
+        RETURN;
+    END IF;
+    
+    -- Normalize coupon code to lowercase
+    p_coupon_code := LOWER(TRIM(p_coupon_code));
+    
+    -- Check if user is admin (has admin role or specific email)
+    SELECT EXISTS(
+        SELECT 1 FROM public.user_roles 
+        WHERE user_id = p_user_id AND role = 'admin'
+    ) INTO v_is_admin;
+    
+    -- Define coupon rewards
+    CASE p_coupon_code
+        WHEN 'zetsu2026' THEN
+            v_reward_amount := 100;
+            v_reward_currency := 'zcoins';
+            v_can_redeem := v_is_admin; -- Admin only, reusable
+        WHEN 'zetsugold2026' THEN
+            v_reward_amount := 100;
+            v_reward_currency := 'zgold';
+            v_can_redeem := v_is_admin; -- Admin only, reusable
+        WHEN 'zersu2026' THEN
+            v_reward_amount := 50;
+            v_reward_currency := 'zcoins';
+            -- Check if already redeemed by this user
+            SELECT EXISTS(
+                SELECT 1 FROM public.coupon_redemptions 
+                WHERE user_id = p_user_id AND coupon_code = p_coupon_code
+            ) INTO v_already_redeemed;
+            
+            IF v_already_redeemed THEN
+                RETURN QUERY SELECT false, 'Coupon already redeemed'::TEXT, 0, ''::TEXT;
+                RETURN;
+            END IF;
+            v_can_redeem := true; -- Available to all players, one-time use
+        ELSE
+            RETURN QUERY SELECT false, 'Invalid coupon code'::TEXT, 0, ''::TEXT;
+            RETURN;
+    END CASE;
+    
+    -- Check if user can redeem this coupon
+    IF NOT v_can_redeem THEN
+        RETURN QUERY SELECT false, 'This coupon is only available for admins'::TEXT, 0, ''::TEXT;
+        RETURN;
+    END IF;
+    
+    -- Add reward to user profile
+    IF v_reward_currency = 'zcoins' THEN
+        UPDATE public.game_profiles
+        SET zcoins = zcoins + v_reward_amount,
+            updated_at = now()
+        WHERE user_id = p_user_id;
+    ELSE
+        UPDATE public.game_profiles
+        SET zgold = zgold + v_reward_amount,
+            updated_at = now()
+        WHERE user_id = p_user_id;
+    END IF;
+    
+    -- Record redemption (only for non-admin reusable codes)
+    IF p_coupon_code = 'zersu2026' THEN
+        INSERT INTO public.coupon_redemptions (user_id, coupon_code, reward_amount, reward_currency)
+        VALUES (p_user_id, p_coupon_code, v_reward_amount, v_reward_currency);
+    END IF;
+    
+    RETURN QUERY SELECT true, 'Coupon redeemed successfully'::TEXT, v_reward_amount, v_reward_currency;
+END;
+$$;
+
+-- ============================================
 -- SUCCESS MESSAGE
 -- ============================================
 DO $$
 BEGIN
-    RAISE NOTICE 'Shop inventory and daily rewards system created successfully!';
+    RAISE NOTICE 'Shop inventory, daily rewards, and coupon system created successfully!';
 END $$;

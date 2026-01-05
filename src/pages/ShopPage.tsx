@@ -94,6 +94,9 @@ const ShopPage = () => {
     const [purchasing, setPurchasing] = useState<string | null>(null);
     const [filter, setFilter] = useState<'all' | 'premium' | 'regular'>('all');
     const [showRewardsModal, setShowRewardsModal] = useState(false);
+    const [showCouponInput, setShowCouponInput] = useState(false);
+    const [couponCode, setCouponCode] = useState('');
+    const [redeeming, setRedeeming] = useState(false);
 
     useEffect(() => {
         const fetchUserData = async () => {
@@ -248,6 +251,80 @@ const ShopPage = () => {
         }
     };
 
+    const handleRedeemCoupon = async () => {
+        if (!couponCode.trim() || redeeming) return;
+
+        setRedeeming(true);
+        try {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) {
+                toast.error('يجب تسجيل الدخول أولاً!');
+                return;
+            }
+
+            const { data, error } = await supabase.rpc('redeem_coupon', {
+                p_user_id: user.id,
+                p_coupon_code: couponCode.trim()
+            });
+
+            if (error) throw error;
+
+            if (data && data.length > 0 && data[0].success) {
+                const reward = data[0];
+                
+                // Celebration effects
+                confetti({
+                    particleCount: 150,
+                    spread: 90,
+                    origin: { y: 0.5 },
+                    colors: reward.reward_currency === 'zgold' 
+                        ? ['#FFD700', '#FFA500', '#FF6347']
+                        : ['#00CED1', '#9370DB', '#FFD700', '#FF69B4']
+                });
+
+                // Update local balance
+                if (reward.reward_currency === 'zcoins') {
+                    setUserProfile(prev => prev ? { ...prev, zcoins: prev.zcoins + reward.reward_amount } : null);
+                } else {
+                    setUserProfile(prev => prev ? { ...prev, zgold: prev.zgold + reward.reward_amount } : null);
+                }
+
+                // Success toast
+                toast.success(
+                    <div className="flex items-center gap-3">
+                        <div className="text-4xl">🎊</div>
+                        <div>
+                            <p className="font-bold text-lg">تم تفعيل القسيمة بنجاح!</p>
+                            <p>حصلت على {reward.reward_amount} {reward.reward_currency === 'zgold' ? 'ZGold' : 'ZCoins'}!</p>
+                        </div>
+                    </div>,
+                    {
+                        duration: 6000,
+                        style: {
+                            background: reward.reward_currency === 'zgold'
+                                ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)'
+                                : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                            color: 'white',
+                            padding: '16px'
+                        }
+                    }
+                );
+
+                // Reset and close
+                setCouponCode('');
+                setShowCouponInput(false);
+            } else {
+                const errorMsg = data[0]?.message || 'كود القسيمة غير صالح';
+                toast.error(errorMsg);
+            }
+        } catch (error) {
+            console.error('Coupon redemption error:', error);
+            toast.error('فشل في تفعيل القسيمة، حاول مرة أخرى');
+        } finally {
+            setRedeeming(false);
+        }
+    };
+
     const getRarityColor = (rarity: string) => {
         switch (rarity) {
             case 'legendary': return 'border-yellow-500/50 from-yellow-900/40 to-amber-900/40 shadow-yellow-500/20';
@@ -288,6 +365,91 @@ const ShopPage = () => {
                     <p className="text-gray-400 max-w-lg mx-auto leading-relaxed">
                         قم بترقية تجربتك واقتناء عناصر أسطورية باستخدام ZGold أو ZCoins.
                     </p>
+                </div>
+
+                {/* Coupon Section */}
+                <div className="mb-8 max-w-md mx-auto">
+                    {!showCouponInput ? (
+                        <button
+                            onClick={() => setShowCouponInput(true)}
+                            className="w-full group relative overflow-hidden rounded-2xl border-2 border-gradient-to-r from-pink-500/30 to-purple-500/30 bg-gradient-to-br from-pink-900/20 via-purple-900/20 to-indigo-900/20 p-4 transition-all hover:scale-[1.02] hover:shadow-[0_0_30px_rgba(236,72,153,0.3)]"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-r from-pink-500/5 via-purple-500/5 to-indigo-500/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="relative flex items-center justify-center gap-3">
+                                <Gift className="w-6 h-6 text-pink-400 animate-pulse" />
+                                <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 via-purple-400 to-indigo-400">
+                                    هل لديك قسيمة؟ 🎁
+                                </span>
+                                <Sparkles className="w-5 h-5 text-purple-400 animate-pulse" style={{ animationDelay: '0.5s' }} />
+                            </div>
+                            <p className="text-xs text-gray-400 mt-2">اضغط هنا لإدخال كود القسيمة</p>
+                        </button>
+                    ) : (
+                        <div className="relative overflow-hidden rounded-2xl border-2 border-gradient-to-r from-pink-500/50 to-purple-500/50 bg-gradient-to-br from-pink-900/30 via-purple-900/30 to-indigo-900/30 p-6 shadow-[0_0_40px_rgba(236,72,153,0.2)]">
+                            {/* Animated background */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-indigo-500/10 animate-pulse"></div>
+                            
+                            <div className="relative">
+                                <div className="flex items-center justify-between mb-4">
+                                    <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
+                                        إدخال القسيمة
+                                    </h3>
+                                    <button
+                                        onClick={() => {
+                                            setShowCouponInput(false);
+                                            setCouponCode('');
+                                        }}
+                                        className="text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    <div className="relative">
+                                        <input
+                                            type="text"
+                                            value={couponCode}
+                                            onChange={(e) => setCouponCode(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleRedeemCoupon()}
+                                            placeholder="أدخل كود القسيمة هنا..."
+                                            className="w-full px-4 py-3 bg-black/40 border-2 border-purple-500/30 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/60 focus:ring-2 focus:ring-purple-500/20 transition-all"
+                                            disabled={redeeming}
+                                        />
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                                            <Gift className="w-5 h-5 text-purple-400/50" />
+                                        </div>
+                                    </div>
+                                    
+                                    <button
+                                        onClick={handleRedeemCoupon}
+                                        disabled={!couponCode.trim() || redeeming}
+                                        className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 ${
+                                            couponCode.trim() && !redeeming
+                                                ? 'bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:scale-[1.02] shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50'
+                                                : 'bg-gray-700/50 cursor-not-allowed opacity-50'
+                                        }`}
+                                    >
+                                        {redeeming ? (
+                                            <>
+                                                <div className="animate-spin">⏳</div>
+                                                جاري التحقق...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Check className="w-5 h-5" />
+                                                تفعيل القسيمة
+                                            </>
+                                        )}
+                                    </button>
+                                    
+                                    <p className="text-xs text-center text-gray-400">
+                                        💡 القسائم المتاحة: zetsu2026, zetsugold2026, zersu2026
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Shopkeeper Character with Golden Glow */}
