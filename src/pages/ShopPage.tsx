@@ -383,24 +383,46 @@ const ShopPage = () => {
                         return (
                             <div
                                 key={item.id}
-                                className={`relative group overflow-hidden rounded-2xl border bg-gradient-to-br p-1 transition-all hover:scale-[1.02] duration-300 ${getRarityColor(item.rarity)}`}
+                                className={`relative group overflow-hidden rounded-2xl border bg-gradient-to-br p-1 transition-all duration-300 ${
+                                    owned 
+                                        ? 'hover:scale-[1.01] opacity-80' 
+                                        : 'hover:scale-[1.05] hover:shadow-2xl'
+                                } ${getRarityColor(item.rarity)}`}
                             >
+                                {/* Glow effect on hover */}
+                                {!owned && (
+                                    <div className="absolute inset-0 bg-gradient-to-br from-white/0 via-white/5 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                                )}
+
                                 <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-0"></div>
 
                                 <div className="relative z-10 bg-black/40 rounded-xl p-4 h-full flex flex-col">
                                     {/* Badge */}
                                     <div className="flex justify-between items-start mb-4">
-                                        <div className={`p-2 rounded-xl bg-gradient-to-br ${item.currency === 'zgold' ? 'from-yellow-500/20 to-orange-500/20 text-yellow-400' : 'from-blue-500/20 to-purple-500/20 text-blue-400'}`}>
+                                        <div className={`p-2 rounded-xl bg-gradient-to-br ${item.currency === 'zgold' ? 'from-yellow-500/20 to-orange-500/20 text-yellow-400' : 'from-blue-500/20 to-purple-500/20 text-blue-400'} group-hover:scale-110 transition-transform`}>
                                             {item.icon}
                                         </div>
                                         {item.rarity === 'legendary' && (
-                                            <span className="px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-[10px] font-black rounded uppercase tracking-wider shadow">
+                                            <span className="px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-black text-[10px] font-black rounded uppercase tracking-wider shadow animate-pulse">
                                                 Legendary
+                                            </span>
+                                        )}
+                                        {item.rarity === 'epic' && (
+                                            <span className="px-2 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-[10px] font-black rounded uppercase tracking-wider shadow">
+                                                Epic
                                             </span>
                                         )}
                                     </div>
 
-                                    <h3 className="text-xl font-bold mb-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-400 transition-colors">
+                                    {/* Owned Badge */}
+                                    {owned && (
+                                        <div className="absolute top-2 left-2 flex items-center gap-1 bg-green-500/20 backdrop-blur-sm border border-green-500/30 px-2 py-1 rounded-lg">
+                                            <Check className="w-3 h-3 text-green-400" />
+                                            <span className="text-[10px] font-bold text-green-400">مملوك</span>
+                                        </div>
+                                    )}
+
+                                    <h3 className="text-xl font-bold mb-1 group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-white group-hover:to-gray-400 transition-all">
                                         {item.nameAr}
                                     </h3>
                                     <p className="text-gray-400 text-xs mb-4 line-clamp-2 min-h-[2.5rem]">{item.description}</p>
@@ -420,17 +442,19 @@ const ShopPage = () => {
                                         <button
                                             onClick={() => handlePurchase(item)}
                                             disabled={owned || !canAfford || !!purchasing}
-                                            className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${owned ? 'bg-green-500/20 text-green-400 border border-green-500/30' :
+                                            className={`flex-1 py-2 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all ${owned ? 'bg-green-500/20 text-green-400 border border-green-500/30 cursor-default' :
                                                 !canAfford ? 'bg-white/5 text-gray-500 border border-white/10 cursor-not-allowed' :
                                                     item.currency === 'zgold'
-                                                        ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-lg shadow-orange-500/20 hover:scale-105'
-                                                        : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/20 hover:scale-105'
+                                                        ? 'bg-gradient-to-r from-yellow-600 to-orange-600 text-white shadow-lg shadow-orange-500/20 hover:scale-105 hover:shadow-orange-500/40'
+                                                        : 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-500/20 hover:scale-105 hover:shadow-purple-500/40'
                                                 }`}
                                         >
                                             {owned ? (
                                                 <>مملوك <Check className="w-3 h-3" /></>
                                             ) : !canAfford ? (
                                                 'غير كافي'
+                                            ) : purchasing === item.id ? (
+                                                <div className="animate-spin">⏳</div>
                                             ) : (
                                                 <>شراء</>
                                             )}
