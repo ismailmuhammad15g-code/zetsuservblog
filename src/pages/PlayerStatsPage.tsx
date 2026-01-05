@@ -6,7 +6,8 @@ import { toast } from 'sonner';
 import {
     User, Loader2, Trophy, Star, Zap, Target, Shield,
     TrendingUp, Award, Crown, Flame, Gem, Coins,
-    Calendar, Globe, ChevronRight, Sparkles, Camera
+    Calendar, Globe, ChevronRight, Sparkles, Camera,
+    ShoppingBag, Music, Image
 } from 'lucide-react';
 import { getXpForNextLevel, getLevelProgress } from '@/utils/levelingSystem';
 
@@ -30,11 +31,20 @@ interface PlayerStats {
     created_at: string;
 }
 
+interface InventoryItem {
+    item_id: string;
+    item_name: string;
+    item_name_ar: string;
+    item_type: string;
+    is_equipped: boolean;
+}
+
 const PlayerStatsPage = () => {
     const [stats, setStats] = useState<PlayerStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
     const [activeTab, setActiveTab] = useState('stats');
+    const [inventory, setInventory] = useState<InventoryItem[]>([]);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -59,6 +69,17 @@ const PlayerStatsPage = () => {
                     .select('username, avatar_url')
                     .eq('id', user.id)
                     .single();
+
+                // Fetch inventory
+                const { data: inventoryData } = await supabase
+                    .from('user_inventory')
+                    .select('item_id, item_name, item_name_ar, item_type, is_equipped')
+                    .eq('user_id', user.id)
+                    .order('purchased_at', { ascending: false });
+
+                if (inventoryData) {
+                    setInventory(inventoryData);
+                }
 
                 if (gameProfile) {
                     const gp = gameProfile as any; // Type assertion for dynamic columns
@@ -402,7 +423,7 @@ const PlayerStatsPage = () => {
                     </div>
 
                     {/* Account Info */}
-                    <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-5">
+                    <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-5 mb-6">
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                             <Award className="w-5 h-5 text-purple-400" />
                             معلومات الحساب
@@ -413,6 +434,42 @@ const PlayerStatsPage = () => {
                             <InfoRow label="معرف اللاعب" value={stats.user_id.slice(0, 8) + '...'} />
                         </div>
                     </div>
+
+                    {/* Inventory Section */}
+                    {inventory.length > 0 && (
+                        <div className="bg-slate-800/60 backdrop-blur-sm rounded-2xl border border-slate-700/50 p-5">
+                            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                <ShoppingBag className="w-5 h-5 text-yellow-400" />
+                                المشتريات ({inventory.length})
+                            </h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                {inventory.map((item) => (
+                                    <div
+                                        key={item.item_id}
+                                        className="relative bg-gradient-to-br from-purple-900/40 to-pink-900/40 rounded-xl p-3 border border-purple-500/30 hover:border-purple-500/50 transition-all"
+                                    >
+                                        <div className="flex flex-col items-center text-center">
+                                            <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center mb-2">
+                                                {item.item_type === 'emoji' && <Sparkles className="w-5 h-5 text-purple-400" />}
+                                                {item.item_type === 'background' && <Image className="w-5 h-5 text-cyan-400" />}
+                                                {item.item_type === 'sound' && <Music className="w-5 h-5 text-green-400" />}
+                                                {item.item_type === 'badge' && <Crown className="w-5 h-5 text-yellow-400" />}
+                                                {item.item_type === 'aura' && <Zap className="w-5 h-5 text-orange-400" />}
+                                            </div>
+                                            <p className="text-xs font-bold text-white line-clamp-2">
+                                                {item.item_name_ar}
+                                            </p>
+                                            {item.is_equipped && (
+                                                <span className="mt-1 px-2 py-0.5 bg-green-500/20 border border-green-500/30 rounded text-[10px] text-green-300">
+                                                    مجهز
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
 
                 </div>
             </div>

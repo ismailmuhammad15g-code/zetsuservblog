@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/Navbar';
 import BottomNavigation from '@/components/zersu-game/BottomNavigation';
 import { supabase } from '@/integrations/supabase/client';
-import { ShoppingBag, Sparkles, Palette, Music, Image, Check, Crown, Zap, Shield, Gem } from 'lucide-react';
+import { ShoppingBag, Sparkles, Palette, Music, Image, Check, Crown, Zap, Shield, Gem, Gift } from 'lucide-react';
 import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
+import DailyRewardsModal from '@/components/shop/DailyRewardsModal';
 import shopkeeperImage from '../images/shopkeeper.png';
 import zcoinImage from '../images/zcoin.png';
 import zgoldImage from '../images/zgold.png';
@@ -91,21 +93,35 @@ const ShopPage = () => {
     const [purchasedItems, setPurchasedItems] = useState<string[]>([]);
     const [purchasing, setPurchasing] = useState<string | null>(null);
     const [filter, setFilter] = useState<'all' | 'premium' | 'regular'>('all');
+    const [showRewardsModal, setShowRewardsModal] = useState(false);
 
     useEffect(() => {
         const fetchUserData = async () => {
             try {
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
+                    // Fetch game profile with zgold
                     const { data: profile } = await supabase
                         .from('game_profiles')
-                        .select('zcoins')
+                        .select('zcoins, zgold')
                         .eq('user_id', user.id)
                         .single();
 
                     if (profile) {
-                        // zgold doesn't exist in DB yet, default to 0
-                        setUserProfile({ zcoins: profile.zcoins ?? 0, zgold: 0 });
+                        setUserProfile({ 
+                            zcoins: profile.zcoins ?? 0, 
+                            zgold: profile.zgold ?? 0 
+                        });
+                    }
+
+                    // Fetch purchased items from inventory
+                    const { data: inventory } = await supabase
+                        .from('user_inventory')
+                        .select('item_id')
+                        .eq('user_id', user.id);
+
+                    if (inventory) {
+                        setPurchasedItems(inventory.map(item => item.item_id));
                     }
                 }
             } catch (error) {
@@ -145,28 +161,68 @@ const ShopPage = () => {
                 return;
             }
 
-            // Deduct currency
+            // Deduct currency from game_profiles
             const updateData = item.currency === 'zgold'
                 ? { zgold: userProfile.zgold - item.price }
                 : { zcoins: userProfile.zcoins - item.price };
 
-            const { error } = await supabase
+            const { error: updateError } = await supabase
                 .from('game_profiles')
                 .update(updateData)
                 .eq('user_id', user.id);
 
-            if (error) throw error;
+            if (updateError) throw updateError;
 
+            // Add item to user inventory
+            const { error: inventoryError } = await supabase
+                .from('user_inventory')
+                .insert({
+                    user_id: user.id,
+                    item_id: item.id,
+                    item_type: item.category,
+                    item_name: item.name,
+                    item_name_ar: item.nameAr,
+                    purchase_price: item.price,
+                    currency_type: item.currency,
+                    is_equipped: false
+                });
+
+            if (inventoryError) throw inventoryError;
+
+            // Update local state
             setUserProfile(prev => prev ? { ...prev, ...updateData } : null);
             setPurchasedItems([...purchasedItems, item.id]);
 
-            // Show premium success/confetti
-            toast.success(`تم شراء ${item.nameAr} بنجاح! 🎉`, {
-                style: {
-                    background: item.rarity === 'legendary' ? 'gold' : '#10B981',
-                    color: 'white'
-                }
+            // Celebration effects
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: item.rarity === 'legendary' 
+                    ? ['#FFD700', '#FFA500', '#FF6347']
+                    : ['#00CED1', '#9370DB', '#FFD700']
             });
+
+            // Show premium success toast
+            toast.success(
+                <div className="flex items-center gap-3">
+                    <div className="text-3xl">🎉</div>
+                    <div>
+                        <p className="font-bold text-lg">تم الشراء بنجاح!</p>
+                        <p>حصلت على {item.nameAr}</p>
+                    </div>
+                </div>,
+                {
+                    duration: 5000,
+                    style: {
+                        background: item.rarity === 'legendary' 
+                            ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)'
+                            : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                        color: 'white',
+                        padding: '16px'
+                    }
+                }
+            );
 
         } catch (error) {
             console.error('Purchase error:', error);
@@ -231,23 +287,28 @@ const ShopPage = () => {
                         <div className="w-48 h-48 bg-yellow-300/50 rounded-full blur-[40px] animate-pulse" style={{ animationDelay: '1s' }} />
                     </div>
 
-                    {/* Shopkeeper Image */}
-                    <div className="relative group">
+                    {/* Shopkeeper Image - CLICKABLE for Rewards */}
+                    <div className="relative group cursor-pointer" onClick={() => setShowRewardsModal(true)}>
                         <img
                             src={shopkeeperImage}
                             alt="Zersu Shopkeeper"
                             className="relative z-10 w-64 h-64 md:w-80 md:h-80 object-contain drop-shadow-[0_0_40px_rgba(234,179,8,0.8)] transition-all duration-500 hover:scale-110 hover:drop-shadow-[0_0_60px_rgba(234,179,8,1)]"
                         />
 
+                        {/* Gift badge indicator */}
+                        <div className="absolute -top-2 -right-2 z-20 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full p-2 shadow-lg animate-bounce">
+                            <Gift className="w-6 h-6 text-white" />
+                        </div>
+
                         {/* Animated sparkles */}
                         <div className="absolute top-0 right-5 w-3 h-3 bg-yellow-400 rounded-full animate-ping" style={{ animationDuration: '1.5s' }} />
                         <div className="absolute top-10 left-0 w-2 h-2 bg-amber-300 rounded-full animate-ping" style={{ animationDuration: '2s', animationDelay: '0.5s' }} />
                         <div className="absolute bottom-10 right-0 w-2 h-2 bg-yellow-300 rounded-full animate-ping" style={{ animationDuration: '1.8s', animationDelay: '1s' }} />
 
-                        {/* Speech bubble */}
-                        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-20 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 backdrop-blur-md border border-yellow-500/30 rounded-2xl px-6 py-3 shadow-xl">
+                        {/* Speech bubble - Enhanced with rewards hint */}
+                        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-20 bg-gradient-to-r from-yellow-500/20 to-amber-500/20 backdrop-blur-md border border-yellow-500/30 rounded-2xl px-6 py-3 shadow-xl group-hover:scale-105 transition-transform">
                             <p className="text-yellow-300 text-sm font-bold text-center whitespace-nowrap">
-                                "أهلاً يا بطل! هل لديك ما يكفي؟ 💰"
+                                "اضغط للحصول على جوائز يومية! 🎁"
                             </p>
                         </div>
                     </div>
@@ -381,6 +442,16 @@ const ShopPage = () => {
                     })}
                 </div>
             </div>
+
+            {/* Daily Rewards Modal */}
+            <DailyRewardsModal 
+                isOpen={showRewardsModal} 
+                onClose={() => setShowRewardsModal(false)}
+                onRewardClaimed={(amount) => {
+                    // Update user profile with new zcoins
+                    setUserProfile(prev => prev ? { ...prev, zcoins: prev.zcoins + amount } : null);
+                }}
+            />
 
             <BottomNavigation activeTab={activeTab} onTabChange={setActiveTab} />
         </div>
