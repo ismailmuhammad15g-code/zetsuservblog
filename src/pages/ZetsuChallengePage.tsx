@@ -1269,8 +1269,8 @@ const GameHome = () => {
     if (isLoading) {
         // Return a skeleton structure instead of blocking screen
         return (
-            <div className="min-h-screen bg-[#0a0e17] p-4">
-                <div className="animate-pulse space-y-4 max-w-2xl mx-auto pt-20">
+            <div className="min-h-screen bg-[#0a0e17] p-4 pb-20 pt-[180px]">
+                <div className="animate-pulse space-y-4 max-w-2xl mx-auto">
                     <div className="h-64 bg-slate-800/50 rounded-3xl"></div>
                     <div className="h-20 bg-slate-800/50 rounded-2xl"></div>
                     <div className="grid grid-cols-3 gap-3">
@@ -1279,6 +1279,7 @@ const GameHome = () => {
                         <div className="h-24 bg-slate-800/50 rounded-2xl"></div>
                     </div>
                 </div>
+                <BottomNavigation />
             </div>
         );
     }
@@ -1728,7 +1729,7 @@ const UserStatsBar = () => {
     const progress = getLevelProgress(xp, level);
 
     return (
-        <div className="bg-slate-900/80 backdrop-blur-md border-b border-white/10 sticky top-0 z-30 pt-16 pb-2 px-4 shadow-xl">
+        <div className="bg-slate-900/80 backdrop-blur-md border-b border-white/10 z-30 pb-2 px-4 shadow-xl">
             <div className="container mx-auto max-w-lg">
                 <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
@@ -1800,14 +1801,14 @@ const ZetsuChallengePage = () => {
                     <div className="absolute w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[80px] bottom-0 right-0 mix-blend-overlay"></div>
                 </div>
 
-                <div className="relative z-20">
+                <div className="fixed top-0 left-0 right-0 z-20">
                     <Navbar />
                     <UserStatsBar />
                 </div>
 
 
 
-                <div className="relative z-10 pt-20">
+                <div className="relative z-10 pt-[180px]">
                     {/* Header with Settings Button */}
                     <div className="text-center py-4 px-4 flex items-center justify-between max-w-4xl mx-auto">
                         <div className="w-10"></div> {/* Spacer for centering */}

@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Megaphone, Sparkles, Zap, ExternalLink, Newspaper } from "lucide-react";
+import { X, Megaphone, Sparkles, Zap, ExternalLink, Newspaper, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Announcement {
   id: string;
@@ -19,6 +19,7 @@ const IconComponent: Record<string, typeof Megaphone> = {
 
 export function AnnouncementBanner() {
   const [isVisible, setIsVisible] = useState(true);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   const { data: announcements } = useQuery({
     queryKey: ["announcements"],
@@ -34,42 +35,86 @@ export function AnnouncementBanner() {
     },
   });
 
+  // Auto-rotate announcements every 5 seconds
+  useEffect(() => {
+    if (!announcements || announcements.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % announcements.length);
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [announcements]);
+
   if (!isVisible || !announcements || announcements.length === 0) return null;
 
+  const currentAnnouncement = announcements[currentIndex];
+  const hasMultiple = announcements.length > 1;
+
+  const handlePrevious = () => {
+    setCurrentIndex((prev) => (prev - 1 + announcements.length) % announcements.length);
+  };
+
+  const handleNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % announcements.length);
+  };
+
+  const handleClick = () => {
+    if (currentAnnouncement.link) {
+      window.open(currentAnnouncement.link, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const Icon = IconComponent[currentAnnouncement.icon] || Megaphone;
+
   return (
-    <div className="bg-gradient-to-r from-primary via-primary/90 to-primary text-primary-foreground relative overflow-hidden z-50 shadow-md">
+    <div className="bg-gradient-to-r from-black via-slate-900 to-black text-white relative z-50 shadow-lg border-b border-white/10">
       <div className="flex items-center justify-between px-4 py-2.5">
-        <div className="flex-1 overflow-hidden">
-          <div className="animate-marquee whitespace-nowrap flex items-center gap-16">
-            {[...announcements, ...announcements].map((announcement, index) => {
-              const Icon = IconComponent[announcement.icon] || Megaphone;
-              return (
-                <span key={`${announcement.id}-${index}`} className="inline-flex items-center gap-2 text-sm font-medium">
-                  {announcement.link ? (
-                    <a 
-                      href={announcement.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 hover:underline hover:opacity-90 transition-opacity"
-                    >
-                      <Icon className="h-4 w-4" />
-                      {announcement.text}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  ) : (
-                    <>
-                      <Icon className="h-4 w-4" />
-                      {announcement.text}
-                    </>
-                  )}
-                </span>
-              );
-            })}
-          </div>
+        {/* Navigation arrows for multiple announcements */}
+        {hasMultiple && (
+          <button
+            onClick={handlePrevious}
+            className="p-1 hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
+            aria-label="Previous announcement"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </button>
+        )}
+
+        {/* Current announcement */}
+        <div
+          onClick={handleClick}
+          className={`flex-1 flex items-center gap-2 min-w-0 px-3 ${currentAnnouncement.link ? 'cursor-pointer hover:opacity-80' : ''} transition-opacity`}
+        >
+          <Icon className="h-4 w-4 flex-shrink-0 text-white animate-pulse" />
+          <span className="text-sm font-medium truncate">
+            {currentAnnouncement.text}
+          </span>
+          {currentAnnouncement.link && (
+            <ExternalLink className="h-3 w-3 flex-shrink-0 opacity-70" />
+          )}
         </div>
+
+        {/* Navigation arrows and counter */}
+        {hasMultiple && (
+          <div className="flex items-center gap-2 flex-shrink-0">
+            <span className="text-xs text-white/50 font-mono">
+              {currentIndex + 1}/{announcements.length}
+            </span>
+            <button
+              onClick={handleNext}
+              className="p-1 hover:bg-white/10 rounded-full transition-colors"
+              aria-label="Next announcement"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        )}
+
+        {/* Close button */}
         <button
           onClick={() => setIsVisible(false)}
-          className="ml-4 p-1.5 hover:bg-primary-foreground/20 rounded-full transition-colors flex-shrink-0"
+          className="ml-2 p-1.5 hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
           aria-label="Close announcement"
         >
           <X className="h-4 w-4" />
