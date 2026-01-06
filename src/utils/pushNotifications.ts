@@ -29,7 +29,7 @@ export const subscribeToPush = async (): Promise<PushSubscription | null> => {
             // Create new subscription
             subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY) as any
             });
         }
 

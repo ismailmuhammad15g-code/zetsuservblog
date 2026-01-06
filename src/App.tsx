@@ -17,7 +17,6 @@ import Contact from "./pages/Contact";
 import Bookmarks from "./pages/Bookmarks";
 import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
-import { WelcomeMessage } from "./components/WelcomeMessage";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { BackToTop } from "./components/BackToTop";
 import { SourceSurveyModal } from "./components/onboarding/SourceSurveyModal";
@@ -35,6 +34,7 @@ import ZersuDocPage from "./pages/ZersuDocPage";
 import { SoundProvider } from "./contexts/SoundContext";
 import { GameProvider } from "./contexts/GameContext";
 import { SoundPermissionPopup } from "./components/SoundPermissionPopup";
+import TermsOfServiceWrapper from "./components/TermsOfServiceWrapper";
 
 const queryClient = new QueryClient();
 
@@ -46,43 +46,44 @@ const App = () => (
           <Toaster />
           <Sonner />
           <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <ScrollToTop />
-            <SourceSurveyModal />
-            <SoundPermissionPopup />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/explore" element={<Explore />} />
-              <Route path="/post/:slug" element={<Post />} />
-              <Route path="/ai-post/:id" element={<AiPost />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/register" element={<Register />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/bookmarks" element={<Bookmarks />} />
-              <Route path="/community" element={<Community />} />
-              <Route path="/zetsuchallenge" element={<ZetsuChallengePage />} />
-              <Route path="/zetsusettings" element={<ZetsuSettingsPage />} />
-              <Route path="/zetsuchallenge/challenges" element={<ZetsuChallengePage />} />
-              <Route path="/zetsuchallenge/active-tasks" element={<ActiveTasksPage />} />
-              <Route path="/leaderboard" element={<LeaderboardPage />} />
-              <Route path="/shop" element={<ShopPage />} />
-              <Route path="/multiplayer" element={<MultiplayerPage />} />
-              <Route path="/vschallenge/:sessionId" element={<VsChallengePage />} />
-              <Route path="/quiz/:sessionId" element={<QuizGamePage />} />
-              <Route path="/player-stats" element={<PlayerStatsPage />} />
-              <Route path="/admin/doc" element={<ZersuDocPage />} />
+            <TermsOfServiceWrapper>
+              <ScrollToTop />
+              <SourceSurveyModal />
+              <SoundPermissionPopup />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/explore" element={<Explore />} />
+                <Route path="/post/:slug" element={<Post />} />
+                <Route path="/ai-post/:id" element={<AiPost />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/admin" element={<Admin />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/bookmarks" element={<Bookmarks />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/zetsuchallenge" element={<ZetsuChallengePage />} />
+                <Route path="/zetsusettings" element={<ZetsuSettingsPage />} />
+                <Route path="/zetsuchallenge/challenges" element={<ZetsuChallengePage />} />
+                <Route path="/zetsuchallenge/active-tasks" element={<ActiveTasksPage />} />
+                <Route path="/leaderboard" element={<LeaderboardPage />} />
+                <Route path="/shop" element={<ShopPage />} />
+                <Route path="/multiplayer" element={<MultiplayerPage />} />
+                <Route path="/vschallenge/:sessionId" element={<VsChallengePage />} />
+                <Route path="/quiz/:sessionId" element={<QuizGamePage />} />
+                <Route path="/player-stats" element={<PlayerStatsPage />} />
+                <Route path="/admin/doc" element={<ZersuDocPage />} />
 
-              {/* User posts (canonical + legacy aliases) */}
-              <Route path="/:username/post" element={<UserPosts />} />
-              <Route path="/user/:username" element={<UserPosts />} />
-              <Route path="/user/:username/post" element={<UserPosts />} />
+                {/* User posts (canonical + legacy aliases) */}
+                <Route path="/:username/post" element={<UserPosts />} />
+                <Route path="/user/:username" element={<UserPosts />} />
+                <Route path="/user/:username/post" element={<UserPosts />} />
 
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <WelcomeMessage />
-            <BackToTop />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              <BackToTop />
+            </TermsOfServiceWrapper>
           </BrowserRouter>
         </GameProvider>
       </TooltipProvider>

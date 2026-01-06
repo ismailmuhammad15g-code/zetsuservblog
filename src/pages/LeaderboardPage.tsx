@@ -48,9 +48,9 @@ const LeaderboardPage = () => {
             if (error) {
                 console.error('Leaderboard fetch error:', error);
                 setLeaderboard([
-                    { user_id: '1', points: 1500, zcoins: 150, server_region: 'MIDDLE_EAST', username: 'Champion1' },
-                    { user_id: '2', points: 1200, zcoins: 120, server_region: 'EUROPE', username: 'ProPlayer' },
-                    { user_id: '3', points: 950, zcoins: 95, server_region: 'ASIA', username: 'ZersuSlayer' },
+                    { user_id: '1', points: 1500, zcoins: 150, server_region: 'MIDDLE_EAST', username: 'Champion1', level: 10, xp: 5000 },
+                    { user_id: '2', points: 1200, zcoins: 120, server_region: 'EUROPE', username: 'ProPlayer', level: 8, xp: 4000 },
+                    { user_id: '3', points: 950, zcoins: 95, server_region: 'ASIA', username: 'ZersuSlayer', level: 5, xp: 2500 },
                 ]);
             } else if (profiles && profiles.length > 0) {
                 const typedProfiles = profiles as any[];
@@ -202,8 +202,8 @@ const LeaderboardPage = () => {
                             <button
                                 onClick={() => setSelectedTab('level')}
                                 className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold transition-all text-sm ${selectedTab === 'level'
-                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
-                                        : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50'
+                                    ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white'
+                                    : 'bg-slate-800/50 text-gray-400 hover:bg-slate-700/50'
                                     }`}
                             >
                                 <Sparkles className="w-3.5 h-3.5" />

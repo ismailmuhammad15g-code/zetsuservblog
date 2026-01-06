@@ -1,7 +1,7 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GameProvider, GameContext, useGame } from '../contexts/GameContext';
-import GameLoginFlow from '../components/zersu-game/GameLoginFlow';
+import WelcomeModal from '../components/zersu-game/WelcomeModal';
 import ChallengeSystem from '../components/zersu-game/ChallengeSystem';
 import BottomNavigation from '../components/zersu-game/BottomNavigation';
 import ZersuCharacter from '../components/zersu-game/ZersuCharacter';
@@ -1285,7 +1285,7 @@ const GameHome = () => {
     }
 
     if (!userProfile) {
-        return <GameLoginFlow />;
+        return <WelcomeModal />;
     }
 
     const handleChallengeSuccess = (reward: number) => {
@@ -1786,52 +1786,50 @@ const ZetsuChallengePage = () => {
     }, [location.pathname]);
 
     return (
-        <GameProvider>
-            <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/40 via-[#0a0e17] to-[#050505] text-white relative overflow-hidden font-['Tajawal']">
+        <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/40 via-[#0a0e17] to-[#050505] text-white relative overflow-hidden font-['Tajawal']">
 
-                {/* Touch Ripple Effect */}
-                <TouchRipple />
+            {/* Touch Ripple Effect */}
+            <TouchRipple />
 
-                {/* Dynamic Weather System (Background) */}
-                <WeatherDisplay />
+            {/* Dynamic Weather System (Background) */}
+            <WeatherDisplay />
 
-                {/* Additional Ambient Glow (Optional overlay on top of weather) */}
-                <div className="fixed inset-0 pointer-events-none z-[1]">
-                    <div className="absolute w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[100px] -top-64 left-1/4 mix-blend-overlay"></div>
-                    <div className="absolute w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[80px] bottom-0 right-0 mix-blend-overlay"></div>
-                </div>
+            {/* Additional Ambient Glow (Optional overlay on top of weather) */}
+            <div className="fixed inset-0 pointer-events-none z-[1]">
+                <div className="absolute w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[100px] -top-64 left-1/4 mix-blend-overlay"></div>
+                <div className="absolute w-[500px] h-[500px] bg-pink-500/10 rounded-full blur-[80px] bottom-0 right-0 mix-blend-overlay"></div>
+            </div>
 
-                <div className="fixed top-0 left-0 right-0 z-20">
-                    <Navbar />
-                    <UserStatsBar />
-                </div>
-
+            <div className="fixed top-0 left-0 right-0 z-20">
+                <Navbar />
+                <UserStatsBar />
+            </div>
 
 
-                <div className="relative z-10 pt-[180px]">
-                    {/* Header with Settings Button */}
-                    <div className="text-center py-4 px-4 flex items-center justify-between max-w-4xl mx-auto">
-                        <div className="w-10"></div> {/* Spacer for centering */}
 
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 border border-purple-500/30 backdrop-blur-sm">
-                            <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
-                            <span className="text-purple-300 text-sm font-bold tracking-wider">ZERSU'S ARENA</span>
-                            <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
-                        </div>
+            <div className="relative z-10 pt-[180px]">
+                {/* Header with Settings Button */}
+                <div className="text-center py-4 px-4 flex items-center justify-between max-w-4xl mx-auto">
+                    <div className="w-10"></div> {/* Spacer for centering */}
 
-                        <button
-                            onClick={() => navigate('/zetsusettings')}
-                            className="p-2 bg-slate-800/50 hover:bg-slate-700/80 rounded-full border border-purple-500/30 hover:border-purple-500/60 transition-all group backdrop-blur-sm"
-                            title="إعدادات الكابوس"
-                        >
-                            <SettingsIcon className="w-6 h-6 text-purple-400 group-hover:rotate-90 transition-transform" />
-                        </button>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 border border-purple-500/30 backdrop-blur-sm">
+                        <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
+                        <span className="text-purple-300 text-sm font-bold tracking-wider">ZERSU'S ARENA</span>
+                        <Sparkles className="w-4 h-4 text-yellow-400 animate-pulse" />
                     </div>
 
-                    <GameHome />
+                    <button
+                        onClick={() => navigate('/zetsusettings')}
+                        className="p-2 bg-slate-800/50 hover:bg-slate-700/80 rounded-full border border-purple-500/30 hover:border-purple-500/60 transition-all group backdrop-blur-sm"
+                        title="إعدادات الكابوس"
+                    >
+                        <SettingsIcon className="w-6 h-6 text-purple-400 group-hover:rotate-90 transition-transform" />
+                    </button>
                 </div>
+
+                <GameHome />
             </div>
-        </GameProvider>
+        </div>
     );
 };
 

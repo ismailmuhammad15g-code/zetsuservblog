@@ -38,7 +38,7 @@ const GameLoginFlow = () => {
             await joinGame(server);
 
             // Update server player count
-            await supabase.rpc('increment_server_players' as any, { server_id: server }).catch(() => { });
+            await supabase.rpc('increment_server_players' as any, { server_id: server });
 
             setStep(3);
         } catch (error) {
@@ -128,7 +128,7 @@ const GameLoginFlow = () => {
                             </button>
 
                             <button
-                                onClick={() => window.location.href = '/auth?redirectTo=/zetsuchallenge'}
+                                onClick={() => window.location.href = '/auth?type=horror&redirectTo=/zetsuchallenge'}
                                 className="w-full py-3 bg-slate-900/50 text-purple-400 font-bold rounded-xl border border-purple-900/30 hover:bg-purple-900/20 hover:border-purple-500/50 transition-all"
                             >
                                 I have an account - Login
@@ -161,71 +161,108 @@ const GameLoginFlow = () => {
 
             <div className="relative min-h-screen flex items-center justify-center p-4">
                 {step === 1 && (
-                    <div className="w-full max-w-2xl bg-slate-900/90 backdrop-blur-xl rounded-3xl border border-purple-500/30 shadow-2xl shadow-purple-500/20 overflow-hidden animate-in zoom-in-95 duration-500">
-                        {/* Header */}
-                        <div className="relative bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-center">
-                            <div className="absolute inset-0 bg-black/20"></div>
-                            <div className="relative">
-                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-sm mb-3">
-                                    <Sparkles className="w-4 h-4" />
-                                    <span>Welcome Challenger</span>
-                                </div>
-                                <h1 className="text-3xl font-black text-white">ZERSU'S ARENA</h1>
-                            </div>
-                        </div>
+                    <div className="relative w-full max-w-4xl mx-auto perspective-1000">
+                        {/* Decorative glow behind the card */}
+                        <div className="absolute -inset-4 bg-gradient-to-r from-purple-600/30 to-blue-600/30 blur-3xl rounded-full opacity-50 animate-pulse-slow"></div>
 
-                        {/* Content */}
-                        <div className="p-8">
-                            <div className="flex flex-col md:flex-row items-center gap-8">
-                                {/* Character */}
-                                <div className="flex-shrink-0">
-                                    <div className="relative">
-                                        <div className="absolute inset-0 bg-purple-500/30 blur-2xl rounded-full"></div>
+                        <div className="relative bg-slate-900/95 backdrop-blur-2xl rounded-[2rem] border border-white/10 shadow-2xl overflow-hidden ring-1 ring-white/5 transform transition-all hover:scale-[1.005] duration-500">
+
+                            {/* Cinematic Header */}
+                            <div className="relative h-32 overflow-hidden bg-black">
+                                <div className="absolute inset-0 bg-gradient-to-b from-purple-900/50 to-transparent z-10"></div>
+                                {/* Pattern overlay */}
+                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+                                <div className="absolute inset-0 bg-gradient-to-r from-purple-800/20 via-blue-800/20 to-purple-800/20 animate-pulse"></div>
+
+                                <div className="relative z-20 h-full flex items-center justify-between px-8">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-purple-500/20 rounded-lg border border-purple-500/30 backdrop-blur-md">
+                                            <Sparkles className="w-6 h-6 text-purple-400 animate-pulse" />
+                                        </div>
+                                        <div className="flex flex-col text-left">
+                                            <span className="text-purple-200 text-xs font-bold tracking-[0.2em] uppercase">Enter the Arena</span>
+                                            <h1 className="text-3xl font-black text-white italic tracking-tighter drop-shadow-lg">
+                                                ZERSU'S <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-cyan-400">CHALLENGE</span>
+                                            </h1>
+                                        </div>
+                                    </div>
+                                    {/* Status Badge */}
+                                    <div className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm">
+                                        <div className="w-2 h-2 rounded-full bg-green-500 animate-ping"></div>
+                                        <span className="text-gray-300 text-xs font-medium">Servers Online</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Main Content Grid */}
+                            <div className="grid md:grid-cols-[1.2fr,2fr] gap-0">
+
+                                {/* Left Column: Avatar Display */}
+                                <div className="relative min-h-[400px] bg-gradient-to-b from-slate-800/50 to-slate-900/50 flex items-center justify-center p-8 border-r border-white/5 overflow-hidden">
+                                    {/* Spotlight effect */}
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-purple-500/10 via-transparent to-transparent blur-xl"></div>
+
+                                    <div className="relative z-10 transform scale-125 hover:scale-135 transition-transform duration-700 ease-out cursor-pointer group">
+                                        <div className="absolute inset-0 bg-purple-500/20 blur-3xl rounded-full group-hover:bg-purple-500/40 transition-all duration-500"></div>
                                         <ZersuCharacter type="idle" size="large" />
                                     </div>
+
+                                    {/* Floor reflection simulation */}
+                                    <div className="absolute bottom-10 w-32 h-4 bg-black/40 blur-md rounded-[100%]"></div>
                                 </div>
 
-                                {/* Text */}
-                                <div className="text-center md:text-right flex-1">
-                                    <h2 className="text-2xl font-bold text-white mb-4">
-                                        هل تريد المتابعة بحسابك من <span className="text-purple-400">ZetsuservBlog</span>؟
-                                    </h2>
-                                    <p className="text-gray-400 mb-6">
-                                        ستحصل على <span className="text-yellow-400 font-bold">5 ZCoins</span> كهدية ترحيبية لبدء التحديات!
-                                    </p>
+                                {/* Right Column: Content & Actions */}
+                                <div className="p-8 md:p-10 flex flex-col justify-center text-right" dir="rtl">
+                                    <div className="space-y-6">
+                                        <div>
+                                            <h2 className="text-3xl md:text-4xl font-bold text-white leading-tight">
+                                                هل أنت جاهز للمواجهة <br />
+                                                في <span className="text-transparent bg-clip-text bg-gradient-to-l from-purple-400 to-cyan-400">ZetsuservBlog</span>؟
+                                            </h2>
+                                            <p className="mt-4 text-lg text-slate-400 leading-relaxed font-light">
+                                                سجّل دخولك الآن واحصل على حزمة البداية المجانية:
+                                                <span className="mr-2 inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 font-bold">
+                                                    <span className="w-2 h-2 rounded-full bg-yellow-400"></span> 5 ZCoins
+                                                </span>
+                                            </p>
+                                        </div>
 
-                                    {/* Features */}
-                                    <div className="space-y-3 mb-8">
-                                        <div className="flex items-center gap-3 text-gray-300">
-                                            <Shield className="w-5 h-5 text-green-400" />
-                                            <span>حسابك آمن ومحمي</span>
+                                        <div className="grid grid-cols-1 gap-3 py-4">
+                                            {[
+                                                { icon: Shield, text: "حماية كاملة للحساب", color: "text-emerald-400", bg: "bg-emerald-500/10" },
+                                                { icon: Sword, text: "نظام قتال متقدم (PvP)", color: "text-red-400", bg: "bg-red-500/10" },
+                                                { icon: Sparkles, text: "جوائز يومية قيمة", color: "text-amber-400", bg: "bg-amber-500/10" }
+                                            ].map((feature, idx) => (
+                                                <div key={idx} className="flex items-center gap-4 p-3 rounded-xl bg-slate-800/50 border border-white/5 hover:bg-slate-800 transition-colors group">
+                                                    <div className={`p-2 rounded-lg ${feature.bg} ${feature.color} group-hover:scale-110 transition-transform`}>
+                                                        <feature.icon className="w-5 h-5" />
+                                                    </div>
+                                                    <span className="text-gray-300 font-medium">{feature.text}</span>
+                                                </div>
+                                            ))}
                                         </div>
-                                        <div className="flex items-center gap-3 text-gray-300">
-                                            <Sword className="w-5 h-5 text-red-400" />
-                                            <span>تحديات يومية جديدة</span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-gray-300">
-                                            <Sparkles className="w-5 h-5 text-yellow-400" />
-                                            <span>مكافآت ورتب حصرية</span>
+
+                                        <div className="flex flex-col gap-3 pt-4">
+                                            <button
+                                                onClick={handleContinueClick}
+                                                className="relative group w-full py-4 bg-gradient-to-l from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-lg rounded-xl overflow-hidden shadow-lg shadow-purple-900/20 transition-all hover:-translate-y-1"
+                                            >
+                                                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out skew-y-12"></div>
+                                                <span className="relative flex items-center justify-center gap-2">
+                                                    نعم، ابدأ التحدي!
+                                                    <Sword className="w-5 h-5 rotate-90" />
+                                                </span>
+                                            </button>
+
+                                            <button
+                                                onClick={cancelGameJoin}
+                                                className="w-full py-4 text-slate-500 font-medium hover:text-slate-300 transition-colors text-sm hover:underline decoration-slate-700 underline-offset-4"
+                                            >
+                                                لا، ليس الآن
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-
-                            {/* Buttons */}
-                            <div className="flex flex-col sm:flex-row gap-4 mt-6">
-                                <button
-                                    onClick={handleContinueClick}
-                                    className="flex-1 py-4 px-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold text-lg rounded-xl hover:scale-105 transition-transform shadow-lg shadow-green-500/30"
-                                >
-                                    نعم، ابدأ المغامرة! 🎮
-                                </button>
-                                <button
-                                    onClick={cancelGameJoin}
-                                    className="flex-1 py-4 px-6 bg-slate-700 text-gray-300 font-bold text-lg rounded-xl hover:bg-slate-600 transition-colors"
-                                >
-                                    لا، ربما لاحقاً
-                                </button>
                             </div>
                         </div>
                     </div>
