@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowUpRight, ImageOff, Pin, Eye, Clock } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ArrowUpRight, ImageOff, Pin, Eye, Clock, Music } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { CategoryBadge } from "./CategoryBadge";
@@ -26,6 +26,7 @@ interface PostCardProps {
   isPinned?: boolean;
   viewsCount?: number;
   content?: string;
+  audioUrl?: string | null;
 }
 
 export function PostCard({
@@ -39,10 +40,13 @@ export function PostCard({
   category,
   isPinned = false,
   viewsCount = 0,
-  content = ""
+  content = "",
+  audioUrl = null
 }: PostCardProps) {
   const [imageError, setImageError] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Calculate reading time
   const wordsPerMinute = 200;
@@ -75,9 +79,43 @@ export function PostCard({
     setIsVerified(isAdmin || isProfileVerified);
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // If there's audio and user clicked on the card (not the link itself), play audio
+    if (audioUrl && audioRef.current) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (isPlaying) {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        audioRef.current.play().catch(err => {
+          console.error("Audio playback failed:", err);
+        });
+        setIsPlaying(true);
+      }
+    }
+  };
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const handleEnded = () => setIsPlaying(false);
+    const handlePause = () => setIsPlaying(false);
+    
+    audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('pause', handlePause);
+    
+    return () => {
+      audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('pause', handlePause);
+    };
+  }, []);
+
   return (
     <article className="group py-6 border-b border-border last:border-0">
-      <Link to={`/post/${slug}`} className="block">
+      <Link to={`/post/${slug}`} className="block" onClick={audioUrl ? handleCardClick : undefined}>
         <div className="flex flex-col md:flex-row gap-4 md:gap-8">
           {coverImage && !imageError ? (
             <div className="md:w-48 md:h-32 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -102,6 +140,12 @@ export function PostCard({
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-500 border border-rose-500/20">
                       <Pin className="h-3 w-3" />
                       Pinned
+                    </span>
+                  )}
+                  {audioUrl && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-500/10 text-purple-500 border border-purple-500/20">
+                      <Music className={`h-3 w-3 ${isPlaying ? 'animate-pulse' : ''}`} />
+                      {isPlaying ? 'Playing' : 'Has Audio'}
                     </span>
                   )}
                   {category && (
@@ -152,6 +196,9 @@ export function PostCard({
           </div>
         </div>
       </Link>
+      {audioUrl && (
+        <audio ref={audioRef} src={audioUrl} preload="none" className="hidden" />
+      )}
     </article>
   );
 }

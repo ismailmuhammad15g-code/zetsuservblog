@@ -180,6 +180,7 @@ export default function Community() {
                   category={post.categories}
                   viewsCount={post.views_count}
                   content={post.content}
+                  audioUrl={post.audio_url}
                 />
               ))}
             </div>
