@@ -26,9 +26,9 @@ serve(async (req: Request) => {
         }
 
         // Validate folder to prevent arbitrary directory writing
-        const allowedFolders = ['posts', 'avatars', 'covers', 'profileimg', 'ai-posts']
+        const allowedFolders = ['posts', 'avatars', 'covers', 'profileimg', 'ai-posts', 'soundpost']
         if (!allowedFolders.includes(folder)) {
-            throw new Error('Invalid folder. Must be posts, avatars, covers, profileimg, or ai-posts.')
+            throw new Error('Invalid folder. Must be posts, avatars, covers, profileimg, ai-posts, or soundpost.')
         }
 
         // Initialize Storage
@@ -60,6 +60,9 @@ serve(async (req: Request) => {
         } else if (folder === 'profileimg') {
             // profileimg/{timestamp}-{random}-{filename}
             filePath = `profileimg/${timestamp}-${random}-${sanitizedFilename}`
+        } else if (folder === 'soundpost') {
+            // soundpost/{timestamp}-{random}-{filename}
+            filePath = `soundpost/${timestamp}-${random}-${sanitizedFilename}`
         } else {
             // avatars/{timestamp}-{random}-{filename}
             // covers/{timestamp}-{random}-{filename}

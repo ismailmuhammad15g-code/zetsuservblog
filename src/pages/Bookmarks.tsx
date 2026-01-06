@@ -154,6 +154,7 @@ export default function Bookmarks() {
                 createdAt={post.created_at}
                 authorName={post.author_name}
                 category={post.category || undefined}
+                audioUrl={post.audio_url}
               />
             ))}
           </div>

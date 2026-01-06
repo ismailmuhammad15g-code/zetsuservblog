@@ -276,6 +276,7 @@ export default function Index() {
                       isPinned={true}
                       viewsCount={post.views_count}
                       content={post.content}
+                      audioUrl={post.audio_url}
                     />
                   ))}
                 </div>
@@ -310,6 +311,7 @@ export default function Index() {
                       category={post.categories}
                       viewsCount={post.views_count}
                       content={post.content}
+                      audioUrl={post.audio_url}
                     />
                   ))}
                 </div>
@@ -361,6 +363,7 @@ export default function Index() {
                       category={post.categories}
                       viewsCount={post.views_count}
                       content={post.content}
+                      audioUrl={post.audio_url}
                     />
                   ))}
                   {filteredCommunityPosts.length > 5 && (

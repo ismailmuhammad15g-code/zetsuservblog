@@ -273,6 +273,7 @@ export default function Explore() {
                         userId={post.user_id}
                         viewsCount={post.views_count}
                         isPinned={post.is_pinned}
+                        audioUrl={post.audio_url}
                       />
                     </div>
                   ))
@@ -317,6 +318,7 @@ export default function Explore() {
                         userId={post.user_id}
                         viewsCount={post.views_count}
                         isPinned={post.is_pinned}
+                        audioUrl={post.audio_url}
                       />
                     </div>
                   ))
@@ -347,6 +349,7 @@ export default function Explore() {
                       userId={post.user_id}
                       viewsCount={post.views_count}
                       isPinned={post.is_pinned}
+                      audioUrl={post.audio_url}
                     />
                   ))
                 ) : (

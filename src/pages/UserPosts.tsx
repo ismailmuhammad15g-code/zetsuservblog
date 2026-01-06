@@ -20,7 +20,7 @@ import {
   ArrowLeft, X, FileText, Clock, Calendar, BarChart3, Sparkles,
   BookOpen, Copy, ExternalLink, CheckCircle2, AlertCircle,
   PenTool, Type, AlignLeft, Tag, Globe, Lock, Link2, MessageSquare,
-  Zap, GraduationCap, Search, Settings2, CalendarClock
+  Zap, GraduationCap, Search, Settings2, CalendarClock, Music
 } from "lucide-react";
 import {
   Dialog,
@@ -65,6 +65,8 @@ interface Post {
   meta_description: string | null;
   reading_level: string;
   scheduled_at: string | null;
+  audio_url: string | null;
+  audio_type: string | null;
 }
 
 interface Profile {
@@ -136,6 +138,10 @@ export default function UserPosts() {
   const [metaDescription, setMetaDescription] = useState("");
   const [readingLevel, setReadingLevel] = useState("all");
   const [scheduledAt, setScheduledAt] = useState("");
+  const [audioUrl, setAudioUrl] = useState("");
+  const [audioType, setAudioType] = useState("");
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [audioInputType, setAudioInputType] = useState<"url" | "file">("url");
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -271,6 +277,78 @@ export default function UserPosts() {
     }
   };
 
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm'];
+    if (!validAudioTypes.includes(file.type)) {
+      toast({ 
+        title: "Invalid file type", 
+        description: "Please upload an audio file (MP3, WAV, OGG, or WebM)", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    // Validate file size (max 10MB)
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      toast({ 
+        title: "File too large", 
+        description: "Audio file must be less than 10MB", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
+    setUploadingAudio(true);
+
+    try {
+      // 1. Get signed URL from Edge Function
+      const { data, error: urlError } = await supabase.functions.invoke('get-gcs-signed-url', {
+        body: { 
+          filename: file.name, 
+          contentType: file.type,
+          folder: 'soundpost'
+        }
+      });
+
+      if (urlError || !data?.uploadUrl || !data?.publicUrl) {
+        throw new Error('Failed to get upload URL');
+      }
+
+      const { uploadUrl, publicUrl } = data;
+
+      // 2. Upload directly to Google Cloud Storage
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': file.type,
+        },
+        body: file,
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      }
+
+      setAudioUrl(publicUrl);
+      setAudioType('file');
+      toast({ title: "✓ Audio uploaded successfully!" });
+    } catch (error: any) {
+      console.error('Audio Upload Error:', error);
+      toast({ 
+        title: "Error uploading audio", 
+        description: error.message, 
+        variant: "destructive" 
+      });
+    } finally {
+      setUploadingAudio(false);
+    }
+  };
+
   const generateSlug = (title: string) => {
     return title
       .toLowerCase()
@@ -318,6 +396,8 @@ export default function UserPosts() {
         meta_description: metaDescription || null,
         reading_level: readingLevel,
         scheduled_at: scheduledAt ? new Date(scheduledAt).toISOString() : null,
+        audio_url: audioUrl || null,
+        audio_type: audioType || null,
       };
 
       if (editingPost) {
@@ -420,6 +500,11 @@ export default function UserPosts() {
       setMetaDescription(post.meta_description || "");
       setReadingLevel(post.reading_level || "all");
       setScheduledAt(post.scheduled_at ? new Date(post.scheduled_at).toISOString().slice(0, 16) : "");
+      setAudioUrl(post.audio_url || "");
+      setAudioType(post.audio_type || "");
+      if (post.audio_url && post.audio_type) {
+        setAudioInputType(post.audio_type as "url" | "file");
+      }
     }
     setEditorTab("write");
     setShowEditor(true);
@@ -444,6 +529,9 @@ export default function UserPosts() {
     setReadingLevel("all");
     setScheduledAt("");
     setShowAdvanced(false);
+    setAudioUrl("");
+    setAudioType("");
+    setAudioInputType("url");
   };
 
   if (loading) {
@@ -782,6 +870,100 @@ export default function UserPosts() {
                         disabled={uploading}
                       />
                     </label>
+                  )}
+                </div>
+
+                {/* Audio/Music Section */}
+                <div className="space-y-4 p-4 border border-border rounded-lg">
+                  <Label className="flex items-center gap-2">
+                    <Music className="h-4 w-4" />
+                    Add Audio/Music (Optional)
+                  </Label>
+                  
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant={audioInputType === "url" ? "secondary" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setAudioInputType("url");
+                        if (audioType === "file") {
+                          setAudioUrl("");
+                          setAudioType("");
+                        }
+                      }}
+                    >
+                      URL
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={audioInputType === "file" ? "secondary" : "outline"}
+                      size="sm"
+                      onClick={() => {
+                        setAudioInputType("file");
+                        if (audioType === "url") {
+                          setAudioUrl("");
+                          setAudioType("");
+                        }
+                      }}
+                    >
+                      Upload File
+                    </Button>
+                    {audioUrl && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setAudioUrl("");
+                          setAudioType("");
+                        }}
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Remove Audio
+                      </Button>
+                    )}
+                  </div>
+
+                  {audioInputType === "url" ? (
+                    <div className="space-y-2">
+                      <Input
+                        id="audio_url"
+                        value={audioType === "url" ? audioUrl : ""}
+                        onChange={(e) => {
+                          setAudioUrl(e.target.value);
+                          setAudioType("url");
+                        }}
+                        placeholder="https://example.com/audio.mp3"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Enter a direct URL to an audio file (MP3, WAV, OGG, or WebM)
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          id="audio_file"
+                          type="file"
+                          accept="audio/*"
+                          onChange={handleAudioUpload}
+                          disabled={uploadingAudio}
+                          className="cursor-pointer"
+                        />
+                        {uploadingAudio && (
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Upload an audio file (Max 10MB, MP3, WAV, OGG, or WebM)
+                      </p>
+                      {audioUrl && audioType === "file" && (
+                        <p className="text-xs text-green-600">
+                          ✓ Audio file uploaded successfully
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
 
