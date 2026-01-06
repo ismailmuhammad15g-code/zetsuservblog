@@ -84,7 +84,7 @@ export function AnnouncementBanner() {
       {isExpanded && hasMultiple && (
         <div className="absolute top-full left-0 right-0 bg-black border-b border-white/10 shadow-2xl z-50 animate-slide-down">
           <div className="max-h-[60vh] overflow-y-auto">
-            {announcements.map((announcement, index) => {
+            {announcements.map((announcement) => {
               const Icon = IconComponent[announcement.icon] || Megaphone;
               const content = (
                 <div className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-b-0">
