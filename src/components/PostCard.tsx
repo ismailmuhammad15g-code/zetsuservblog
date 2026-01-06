@@ -1,10 +1,11 @@
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
-import { ArrowUpRight, ImageOff, Pin, Eye, Clock, Music } from "lucide-react";
+import { ArrowUpRight, ImageOff, Pin, Eye, Clock, Music, PlayCircle, PauseCircle } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { CategoryBadge } from "./CategoryBadge";
+import { useToast } from "@/hooks/use-toast";
 
 interface Category {
   id: string;
@@ -47,6 +48,7 @@ export function PostCard({
   const [isVerified, setIsVerified] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { toast } = useToast();
 
   // Calculate reading time
   const wordsPerMinute = 200;
@@ -79,21 +81,25 @@ export function PostCard({
     setIsVerified(isAdmin || isProfileVerified);
   };
 
-  const handleCardClick = (e: React.MouseEvent) => {
-    // If there's audio and user clicked on the card (not the link itself), play audio
-    if (audioUrl && audioRef.current) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        audioRef.current.play().catch(err => {
-          console.error("Audio playback failed:", err);
+  const handleAudioToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!audioRef.current) return;
+    
+    if (isPlaying) {
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      audioRef.current.play().catch(err => {
+        console.error("Audio playback failed:", err);
+        toast({
+          title: "Audio Playback Failed",
+          description: "Unable to play audio. Please try again or check your connection.",
+          variant: "destructive"
         });
-        setIsPlaying(true);
-      }
+      });
+      setIsPlaying(true);
     }
   };
 
@@ -114,8 +120,8 @@ export function PostCard({
   }, []);
 
   return (
-    <article className="group py-6 border-b border-border last:border-0">
-      <Link to={`/post/${slug}`} className="block" onClick={audioUrl ? handleCardClick : undefined}>
+    <article className="group py-6 border-b border-border last:border-0 relative">
+      <Link to={`/post/${slug}`} className="block">
         <div className="flex flex-col md:flex-row gap-4 md:gap-8">
           {coverImage && !imageError ? (
             <div className="md:w-48 md:h-32 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -134,7 +140,7 @@ export function PostCard({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2">
+              <div className="space-y-2 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   {isPinned && (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-500 border border-rose-500/20">
@@ -152,9 +158,24 @@ export function PostCard({
                     <CategoryBadge name={category.name} color={category.color} size="sm" />
                   )}
                 </div>
-                <h2 className="text-lg font-medium tracking-tight group-hover:text-muted-foreground transition-colors line-clamp-2">
-                  {title}
-                </h2>
+                <div className="flex items-start justify-between gap-2">
+                  <h2 className="text-lg font-medium tracking-tight group-hover:text-muted-foreground transition-colors line-clamp-2 flex-1">
+                    {title}
+                  </h2>
+                  {audioUrl && (
+                    <button
+                      onClick={handleAudioToggle}
+                      className="flex-shrink-0 p-1.5 rounded-full hover:bg-purple-500/20 transition-colors"
+                      aria-label={isPlaying ? "Pause audio" : "Play audio"}
+                    >
+                      {isPlaying ? (
+                        <PauseCircle className="h-5 w-5 text-purple-500" />
+                      ) : (
+                        <PlayCircle className="h-5 w-5 text-purple-500" />
+                      )}
+                    </button>
+                  )}
+                </div>
               </div>
               <ArrowUpRight className="h-4 w-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
             </div>
