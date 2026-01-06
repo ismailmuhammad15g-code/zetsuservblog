@@ -1269,7 +1269,7 @@ const GameHome = () => {
     if (isLoading) {
         // Return a skeleton structure instead of blocking screen
         return (
-            <div className="min-h-screen bg-[#0a0e17] p-4">
+            <div className="min-h-screen bg-[#0a0e17] p-4 pb-20">
                 <div className="animate-pulse space-y-4 max-w-2xl mx-auto pt-20">
                     <div className="h-64 bg-slate-800/50 rounded-3xl"></div>
                     <div className="h-20 bg-slate-800/50 rounded-2xl"></div>
@@ -1279,6 +1279,7 @@ const GameHome = () => {
                         <div className="h-24 bg-slate-800/50 rounded-2xl"></div>
                     </div>
                 </div>
+                <BottomNavigation />
             </div>
         );
     }

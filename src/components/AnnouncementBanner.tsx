@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { X, Megaphone, Sparkles, Zap, ExternalLink, Newspaper } from "lucide-react";
+import { X, Megaphone, Sparkles, Zap, ExternalLink, Newspaper, ChevronDown } from "lucide-react";
 
 interface Announcement {
   id: string;
@@ -19,6 +19,7 @@ const IconComponent: Record<string, typeof Megaphone> = {
 
 export function AnnouncementBanner() {
   const [isVisible, setIsVisible] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const { data: announcements } = useQuery({
     queryKey: ["announcements"],
@@ -36,45 +37,88 @@ export function AnnouncementBanner() {
 
   if (!isVisible || !announcements || announcements.length === 0) return null;
 
+  const firstAnnouncement = announcements[0];
+  const hasMultiple = announcements.length > 1;
+
   return (
-    <div className="bg-gradient-to-r from-primary via-primary/90 to-primary text-primary-foreground relative overflow-hidden z-50 shadow-md">
+    <div className="bg-gradient-to-r from-black via-slate-900 to-black text-white relative z-50 shadow-lg border-b border-white/10">
+      {/* Main announcement bar */}
       <div className="flex items-center justify-between px-4 py-2.5">
-        <div className="flex-1 overflow-hidden">
-          <div className="animate-marquee whitespace-nowrap flex items-center gap-16">
-            {[...announcements, ...announcements].map((announcement, index) => {
-              const Icon = IconComponent[announcement.icon] || Megaphone;
+        <button
+          onClick={() => hasMultiple && setIsExpanded(!isExpanded)}
+          className={`flex-1 flex items-center gap-3 ${hasMultiple ? 'cursor-pointer hover:opacity-80' : 'cursor-default'} transition-opacity`}
+        >
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {(() => {
+              const Icon = IconComponent[firstAnnouncement.icon] || Megaphone;
               return (
-                <span key={`${announcement.id}-${index}`} className="inline-flex items-center gap-2 text-sm font-medium">
-                  {announcement.link ? (
-                    <a 
-                      href={announcement.link} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 hover:underline hover:opacity-90 transition-opacity"
-                    >
-                      <Icon className="h-4 w-4" />
-                      {announcement.text}
-                      <ExternalLink className="h-3 w-3" />
-                    </a>
-                  ) : (
-                    <>
-                      <Icon className="h-4 w-4" />
-                      {announcement.text}
-                    </>
+                <>
+                  <Icon className="h-4 w-4 flex-shrink-0 text-white" />
+                  <span className="text-sm font-medium truncate">
+                    {firstAnnouncement.text}
+                  </span>
+                  {firstAnnouncement.link && (
+                    <ExternalLink className="h-3 w-3 flex-shrink-0 opacity-70" />
                   )}
-                </span>
+                </>
               );
-            })}
+            })()}
           </div>
-        </div>
+          {hasMultiple && (
+            <div className="flex items-center gap-1 text-xs text-white/70 flex-shrink-0">
+              <span className="hidden sm:inline">+{announcements.length - 1}</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+            </div>
+          )}
+        </button>
         <button
           onClick={() => setIsVisible(false)}
-          className="ml-4 p-1.5 hover:bg-primary-foreground/20 rounded-full transition-colors flex-shrink-0"
+          className="ml-4 p-1.5 hover:bg-white/10 rounded-full transition-colors flex-shrink-0"
           aria-label="Close announcement"
         >
           <X className="h-4 w-4" />
         </button>
       </div>
+
+      {/* Dropdown list - Microsoft style */}
+      {isExpanded && hasMultiple && (
+        <div className="absolute top-full left-0 right-0 bg-black border-b border-white/10 shadow-2xl z-50 animate-slide-down">
+          <div className="max-h-[60vh] overflow-y-auto">
+            {announcements.map((announcement, index) => {
+              const Icon = IconComponent[announcement.icon] || Megaphone;
+              const content = (
+                <div className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-colors border-b border-white/5 last:border-b-0">
+                  <Icon className="h-4 w-4 flex-shrink-0 text-white" />
+                  <span className="text-sm font-medium flex-1">{announcement.text}</span>
+                  {announcement.link && (
+                    <ExternalLink className="h-3 w-3 flex-shrink-0 opacity-50" />
+                  )}
+                </div>
+              );
+
+              if (announcement.link) {
+                return (
+                  <a
+                    key={announcement.id}
+                    href={announcement.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="block"
+                  >
+                    {content}
+                  </a>
+                );
+              }
+
+              return (
+                <div key={announcement.id}>
+                  {content}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
