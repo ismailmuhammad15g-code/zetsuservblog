@@ -171,6 +171,7 @@ export type Database = {
         Row: {
           user_id: string
           zcoins: number
+          zgold: number
           server_region: string
           challenges_generated: boolean
           created_at: string
@@ -187,10 +188,50 @@ export type Database = {
         Update: {
           user_id?: string
           zcoins?: number
+          zgold?: number
           server_region?: string
           challenges_generated?: boolean
           created_at?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_inventory: {
+        Row: {
+          id: string
+          user_id: string
+          item_id: string
+          item_name: string
+          item_name_ar: string
+          item_type: string
+          created_at: string
+          is_equipped: boolean
+          currency_type: string
+          purchase_price: number
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          item_id: string
+          item_name: string
+          item_name_ar: string
+          item_type: string
+          created_at?: string
+          is_equipped?: boolean
+          currency_type: string
+          purchase_price: number
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          item_id?: string
+          item_name?: string
+          item_name_ar?: string
+          item_type?: string
+          created_at?: string
+          is_equipped?: boolean
+          currency_type?: string
+          purchase_price?: number
         }
         Relationships: []
       }
@@ -865,6 +906,18 @@ export type Database = {
           user_id: string
         }
         Returns: undefined
+      }
+      redeem_coupon: {
+        Args: {
+          p_user_id: string
+          p_coupon_code: string
+        }
+        Returns: {
+          success: boolean
+          message: string
+          reward_amount: number
+          reward_currency: string
+        }[]
       }
       can_ai_post: {
         Args: Record<string, never>

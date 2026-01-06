@@ -111,9 +111,9 @@ const ShopPage = () => {
                         .single();
 
                     if (profile) {
-                        setUserProfile({ 
-                            zcoins: profile.zcoins ?? 0, 
-                            zgold: profile.zgold ?? 0 
+                        setUserProfile({
+                            zcoins: profile.zcoins ?? 0,
+                            zgold: profile.zgold ?? 0
                         });
                     }
 
@@ -217,7 +217,7 @@ const ShopPage = () => {
                 particleCount: 100,
                 spread: 70,
                 origin: { y: 0.6 },
-                colors: item.rarity === 'legendary' 
+                colors: item.rarity === 'legendary'
                     ? ['#FFD700', '#FFA500', '#FF6347']
                     : ['#00CED1', '#9370DB', '#FFD700']
             });
@@ -234,7 +234,7 @@ const ShopPage = () => {
                 {
                     duration: 5000,
                     style: {
-                        background: item.rarity === 'legendary' 
+                        background: item.rarity === 'legendary'
                             ? 'linear-gradient(135deg, #FFD700 0%, #FFA500 100%)'
                             : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
                         color: 'white',
@@ -271,13 +271,13 @@ const ShopPage = () => {
 
             if (data && data.length > 0 && data[0].success) {
                 const reward = data[0];
-                
+
                 // Celebration effects
                 confetti({
                     particleCount: 150,
                     spread: 90,
                     origin: { y: 0.5 },
-                    colors: reward.reward_currency === 'zgold' 
+                    colors: reward.reward_currency === 'zgold'
                         ? ['#FFD700', '#FFA500', '#FF6347']
                         : ['#00CED1', '#9370DB', '#FFD700', '#FF69B4']
                 });
@@ -388,7 +388,7 @@ const ShopPage = () => {
                         <div className="relative overflow-hidden rounded-2xl border-2 border-gradient-to-r from-pink-500/50 to-purple-500/50 bg-gradient-to-br from-pink-900/30 via-purple-900/30 to-indigo-900/30 p-6 shadow-[0_0_40px_rgba(236,72,153,0.2)]">
                             {/* Animated background */}
                             <div className="absolute inset-0 bg-gradient-to-r from-pink-500/10 via-purple-500/10 to-indigo-500/10 animate-pulse"></div>
-                            
+
                             <div className="relative">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-400">
@@ -404,7 +404,7 @@ const ShopPage = () => {
                                         ✕
                                     </button>
                                 </div>
-                                
+
                                 <div className="space-y-4">
                                     <div className="relative">
                                         <input
@@ -420,15 +420,14 @@ const ShopPage = () => {
                                             <Gift className="w-5 h-5 text-purple-400/50" />
                                         </div>
                                     </div>
-                                    
+
                                     <button
                                         onClick={handleRedeemCoupon}
                                         disabled={!couponCode.trim() || redeeming}
-                                        className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 ${
-                                            couponCode.trim() && !redeeming
+                                        className={`w-full py-3 px-4 rounded-xl font-bold text-white transition-all flex items-center justify-center gap-2 ${couponCode.trim() && !redeeming
                                                 ? 'bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 hover:scale-[1.02] shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50'
                                                 : 'bg-gray-700/50 cursor-not-allowed opacity-50'
-                                        }`}
+                                            }`}
                                     >
                                         {redeeming ? (
                                             <>
@@ -442,10 +441,8 @@ const ShopPage = () => {
                                             </>
                                         )}
                                     </button>
-                                    
-                                    <p className="text-xs text-center text-gray-400">
-                                        💡 القسائم المتاحة: zetsu2026, zetsugold2026, zersu2026
-                                    </p>
+
+
                                 </div>
                             </div>
                         </div>
@@ -561,11 +558,10 @@ const ShopPage = () => {
                         return (
                             <div
                                 key={item.id}
-                                className={`relative group overflow-hidden rounded-2xl border bg-gradient-to-br p-1 transition-all duration-300 ${
-                                    owned 
-                                        ? 'hover:scale-[1.01] opacity-80' 
+                                className={`relative group overflow-hidden rounded-2xl border bg-gradient-to-br p-1 transition-all duration-300 ${owned
+                                        ? 'hover:scale-[1.01] opacity-80'
                                         : 'hover:scale-[1.05] hover:shadow-2xl'
-                                } ${getRarityColor(item.rarity)}`}
+                                    } ${getRarityColor(item.rarity)}`}
                             >
                                 {/* Glow effect on hover */}
                                 {!owned && (
@@ -646,8 +642,8 @@ const ShopPage = () => {
             </div>
 
             {/* Daily Rewards Modal */}
-            <DailyRewardsModal 
-                isOpen={showRewardsModal} 
+            <DailyRewardsModal
+                isOpen={showRewardsModal}
                 onClose={() => setShowRewardsModal(false)}
                 onRewardClaimed={(amount) => {
                     // Update user profile with new zcoins
