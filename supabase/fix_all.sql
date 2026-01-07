@@ -298,26 +298,20 @@ BEGIN
 END $$;
 
 -- ============================================
--- 8. POST VIEWS TABLE
+-- 8. INCREMENT POST VIEWS FUNCTION (Atomic)
 -- ============================================
-CREATE TABLE IF NOT EXISTS public.post_views (
-  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
-  post_id UUID NOT NULL REFERENCES public.posts(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  ip_address TEXT,
-  viewed_at TIMESTAMP WITH TIME ZONE DEFAULT now()
-);
-ALTER TABLE public.post_views ENABLE ROW LEVEL SECURITY;
-
-DO $$
+-- This function atomically increments the views_count on a post
+CREATE OR REPLACE FUNCTION public.increment_post_views(p_post_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'post_views' AND policyname = 'Anyone can insert views') THEN
-        CREATE POLICY "Anyone can insert views" ON public.post_views FOR INSERT WITH CHECK (true);
-    END IF;
-    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'post_views' AND policyname = 'Anyone can read views') THEN
-        CREATE POLICY "Anyone can read views" ON public.post_views FOR SELECT USING (true);
-    END IF;
-END $$;
+  UPDATE public.posts
+  SET views_count = COALESCE(views_count, 0) + 1
+  WHERE id = p_post_id;
+END;
+$$;
 
 -- ============================================
 -- FINAL INSTRUCTION (MANUAL DEPLOYMENT REQUIRED)

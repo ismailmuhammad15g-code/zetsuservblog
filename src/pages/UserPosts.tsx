@@ -284,10 +284,10 @@ export default function UserPosts() {
     // Validate file type
     const validAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm'];
     if (!validAudioTypes.includes(file.type)) {
-      toast({ 
-        title: "Invalid file type", 
-        description: "Please upload an audio file (MP3, WAV, OGG, or WebM)", 
-        variant: "destructive" 
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an audio file (MP3, WAV, OGG, or WebM)",
+        variant: "destructive"
       });
       return;
     }
@@ -295,10 +295,10 @@ export default function UserPosts() {
     // Validate file size (max 10MB)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast({ 
-        title: "File too large", 
-        description: "Audio file must be less than 10MB", 
-        variant: "destructive" 
+      toast({
+        title: "File too large",
+        description: "Audio file must be less than 10MB",
+        variant: "destructive"
       });
       return;
     }
@@ -308,15 +308,16 @@ export default function UserPosts() {
     try {
       // 1. Get signed URL from Edge Function
       const { data, error: urlError } = await supabase.functions.invoke('get-gcs-signed-url', {
-        body: { 
-          filename: file.name, 
+        body: {
+          filename: file.name,
           contentType: file.type,
           folder: 'soundpost'
         }
       });
 
       if (urlError || !data?.uploadUrl || !data?.publicUrl) {
-        throw new Error('Failed to get upload URL');
+        console.error("Signed URL Error:", urlError, data);
+        throw new Error(urlError?.message || 'Failed to get upload URL');
       }
 
       const { uploadUrl, publicUrl } = data;
@@ -331,7 +332,8 @@ export default function UserPosts() {
       });
 
       if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+        console.error("GCS Upload Error:", uploadResponse.status, uploadResponse.statusText);
+        throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
       }
 
       setAudioUrl(publicUrl);
@@ -339,10 +341,10 @@ export default function UserPosts() {
       toast({ title: "✓ Audio uploaded successfully!" });
     } catch (error: any) {
       console.error('Audio Upload Error:', error);
-      toast({ 
-        title: "Error uploading audio", 
-        description: error.message, 
-        variant: "destructive" 
+      toast({
+        title: "Error uploading audio",
+        description: error.message || "An unexpected error occurred during upload.",
+        variant: "destructive"
       });
     } finally {
       setUploadingAudio(false);
@@ -879,7 +881,7 @@ export default function UserPosts() {
                     <Music className="h-4 w-4" />
                     Add Audio/Music (Optional)
                   </Label>
-                  
+
                   <div className="flex gap-2">
                     <Button
                       type="button"

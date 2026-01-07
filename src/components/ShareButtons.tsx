@@ -1,4 +1,4 @@
-import { Twitter, Facebook, Linkedin, Link as LinkIcon, Share2 } from "lucide-react";
+import { Twitter, Facebook, Linkedin, Link as LinkIcon, Share2, ScrollText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,9 +11,12 @@ import { useToast } from "@/hooks/use-toast";
 interface ShareButtonsProps {
   title: string;
   url?: string;
+  autoScrollEnabled?: boolean;
+  onToggleAutoScroll?: () => void;
+  showAutoScrollToggle?: boolean;
 }
 
-export function ShareButtons({ title, url }: ShareButtonsProps) {
+export function ShareButtons({ title, url, autoScrollEnabled, onToggleAutoScroll, showAutoScrollToggle }: ShareButtonsProps) {
   const { toast } = useToast();
   const shareUrl = url || (typeof window !== "undefined" ? window.location.href : "");
   const encodedUrl = encodeURIComponent(shareUrl);
@@ -54,34 +57,43 @@ export function ShareButtons({ title, url }: ShareButtonsProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={() => handleShare("twitter")}
           className="flex items-center gap-2 cursor-pointer"
         >
           <Twitter className="h-4 w-4" />
           Twitter / X
         </DropdownMenuItem>
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={() => handleShare("facebook")}
           className="flex items-center gap-2 cursor-pointer"
         >
           <Facebook className="h-4 w-4" />
           Facebook
         </DropdownMenuItem>
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={() => handleShare("linkedin")}
           className="flex items-center gap-2 cursor-pointer"
         >
           <Linkedin className="h-4 w-4" />
           LinkedIn
         </DropdownMenuItem>
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={copyLink}
           className="flex items-center gap-2 cursor-pointer"
         >
           <LinkIcon className="h-4 w-4" />
           Copy link
         </DropdownMenuItem>
+        {showAutoScrollToggle && (
+          <DropdownMenuItem
+            onClick={onToggleAutoScroll}
+            className="flex items-center gap-2 cursor-pointer"
+          >
+            <ScrollText className="h-4 w-4" />
+            Auto-scroll: {autoScrollEnabled ? 'ON' : 'OFF'}
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

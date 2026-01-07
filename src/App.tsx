@@ -18,7 +18,7 @@ import Bookmarks from "./pages/Bookmarks";
 import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
 import { ScrollToTop } from "./components/ScrollToTop";
-import { BackToTop } from "./components/BackToTop";
+
 import { SourceSurveyModal } from "./components/onboarding/SourceSurveyModal";
 import ZetsuChallengePage from "./pages/ZetsuChallengePage";
 import ZetsuSettingsPage from "./pages/ZetsuSettingsPage";
@@ -82,7 +82,7 @@ const App = () => (
 
                 <Route path="*" element={<NotFound />} />
               </Routes>
-              <BackToTop />
+
             </TermsOfServiceWrapper>
           </BrowserRouter>
         </GameProvider>

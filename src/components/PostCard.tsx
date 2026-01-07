@@ -122,94 +122,89 @@ export function PostCard({
   }, []);
 
   return (
-    <article className="group py-6 border-b border-border last:border-0 relative">
+    <article className="group py-4 mb-3 border border-border/40 rounded-xl px-4 hover:border-border hover:bg-muted/20 transition-all duration-200">
       <Link to={`/post/${slug}`} className="block">
-        <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+        <div className="flex gap-4">
+          {/* Cover Image - Left side */}
           {coverImage && !imageError ? (
-            <div className="md:w-48 md:h-32 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
+            <div className="w-20 h-20 md:w-28 md:h-28 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
               <img
                 src={coverImage}
                 alt={title}
-                className="w-full h-48 md:h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                 onError={() => setImageError(true)}
               />
             </div>
           ) : coverImage && imageError ? (
-            <div className="md:w-48 md:h-32 flex-shrink-0 overflow-hidden rounded-lg bg-muted flex items-center justify-center">
-              <ImageOff className="h-8 w-8 text-muted-foreground/50" />
+            <div className="w-20 h-20 md:w-28 md:h-28 flex-shrink-0 overflow-hidden rounded-lg bg-muted/50 flex items-center justify-center">
+              <ImageOff className="h-6 w-6 text-muted-foreground/40" />
             </div>
           ) : null}
 
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-4">
-              <div className="space-y-2 flex-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {isPinned && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-500 border border-rose-500/20">
-                      <Pin className="h-3 w-3" />
-                      Pinned
-                    </span>
+          {/* Content - Right side */}
+          <div className="flex-1 min-w-0 flex flex-col justify-between">
+            {/* Top Row: Badges */}
+            <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
+              {isPinned && (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-foreground text-background">
+                  <Pin className="h-2.5 w-2.5" />
+                  Pinned
+                </span>
+              )}
+              {audioUrl && (
+                <button
+                  onClick={handleAudioToggle}
+                  className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors ${isPlaying
+                    ? 'bg-foreground text-background'
+                    : 'bg-muted text-foreground hover:bg-foreground hover:text-background'
+                    }`}
+                >
+                  {isPlaying ? (
+                    <PauseCircle className="h-2.5 w-2.5" />
+                  ) : (
+                    <Music className="h-2.5 w-2.5" />
                   )}
-                  {audioUrl && (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-purple-500/10 text-purple-500 border border-purple-500/20">
-                      <Music className={`h-3 w-3 ${isPlaying ? 'animate-pulse' : ''}`} />
-                      {isPlaying ? 'Playing' : 'Has Audio'}
-                    </span>
-                  )}
-                  {category && (
-                    <CategoryBadge name={category.name} color={category.color} size="sm" />
-                  )}
-                </div>
-                <div className="flex items-start justify-between gap-2">
-                  <h2 className="text-lg font-medium tracking-tight group-hover:text-muted-foreground transition-colors line-clamp-2 flex-1">
-                    {title}
-                  </h2>
-                  {audioUrl && (
-                    <button
-                      onClick={handleAudioToggle}
-                      className="flex-shrink-0 p-1.5 rounded-full hover:bg-purple-500/20 transition-colors"
-                      aria-label={isPlaying ? "Pause audio" : "Play audio"}
-                    >
-                      {isPlaying ? (
-                        <PauseCircle className="h-5 w-5 text-purple-500" />
-                      ) : (
-                        <PlayCircle className="h-5 w-5 text-purple-500" />
-                      )}
-                    </button>
-                  )}
-                </div>
-              </div>
-              <ArrowUpRight className="h-4 w-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground" />
+                  {isPlaying ? 'Playing' : 'Audio'}
+                </button>
+              )}
+              {category && (
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium bg-muted text-muted-foreground">
+                  {category.name}
+                </span>
+              )}
             </div>
 
+            {/* Title */}
+            <h2 className="text-base md:text-lg font-semibold tracking-tight group-hover:text-muted-foreground transition-colors line-clamp-2 leading-snug">
+              {title}
+            </h2>
+
+            {/* Excerpt - only on larger screens */}
             {excerpt && (
-              <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+              <p className="hidden md:block mt-1 text-sm text-muted-foreground line-clamp-1">
                 {excerpt}
               </p>
             )}
 
-            <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="flex items-center gap-1">
-                {authorName}
+            {/* Meta Row - compact on mobile */}
+            <div className="mt-1.5 flex items-center text-[10px] md:text-xs text-muted-foreground overflow-hidden">
+              <span className="flex items-center gap-1 shrink-0">
+                <span className="truncate max-w-[80px] md:max-w-none">{authorName}</span>
                 {isVerified && <VerifiedBadge />}
               </span>
-              <span>·</span>
-              <time dateTime={createdAt}>
-                {formatDistanceToNow(new Date(createdAt), { addSuffix: true })}
+              <span className="mx-1 text-muted-foreground/30 shrink-0">•</span>
+              <time dateTime={createdAt} className="shrink-0">
+                {formatDistanceToNow(new Date(createdAt), { addSuffix: false })}
               </time>
-              {content && (
-                <>
-                  <span>·</span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
-                    {readingTime} min
-                  </span>
-                </>
-              )}
+              <span className="hidden md:inline mx-1 text-muted-foreground/30">•</span>
+              <span className="hidden md:flex items-center gap-0.5 shrink-0">
+                <Clock className="h-3 w-3" />
+                {readingTime}m
+              </span>
               {viewsCount > 0 && (
                 <>
-                  <span>·</span>
-                  <span className="flex items-center gap-1">
+                  <span className="mx-1 text-muted-foreground/30 shrink-0">•</span>
+                  <span className="flex items-center gap-0.5 shrink-0">
                     <Eye className="h-3 w-3" />
                     {viewsCount}
                   </span>
@@ -217,6 +212,9 @@ export function PostCard({
               )}
             </div>
           </div>
+
+          {/* Arrow indicator */}
+          <ArrowUpRight className="h-4 w-4 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground self-center" />
         </div>
       </Link>
       {audioUrl && (
