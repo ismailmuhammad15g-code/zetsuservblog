@@ -36,6 +36,22 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ isOpen, onClose, 
     const [nextRewardTime, setNextRewardTime] = useState<Date | null>(null);
     const [claiming, setClaiming] = useState(false);
     const [timeUntilNext, setTimeUntilNext] = useState('');
+    
+    // Memoize particle positions to prevent recalculation on every render
+    const particlePositions = React.useMemo(() => 
+        [...Array(20)].map(() => ({
+            left: `${Math.random() * 100}%`,
+            top: `${Math.random() * 100}%`,
+            delay: `${Math.random() * 3}s`,
+            duration: `${2 + Math.random() * 3}s`,
+            opacity: 0.3 + Math.random() * 0.7
+        })), 
+    []);
+    
+    // Memoize ray angles to prevent recalculation
+    const rayAngles = React.useMemo(() => 
+        [...Array(8)].map((_, i) => i * 45), 
+    []);
 
     useEffect(() => {
         if (isOpen) {
@@ -282,16 +298,16 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ isOpen, onClose, 
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-in fade-in duration-300">
             {/* Animated particles background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                {[...Array(20)].map((_, i) => (
+                {particlePositions.map((particle, i) => (
                     <div
                         key={i}
                         className="absolute w-1 h-1 bg-yellow-400 rounded-full animate-pulse"
                         style={{
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`,
-                            animationDelay: `${Math.random() * 3}s`,
-                            animationDuration: `${2 + Math.random() * 3}s`,
-                            opacity: 0.3 + Math.random() * 0.7
+                            left: particle.left,
+                            top: particle.top,
+                            animationDelay: particle.delay,
+                            animationDuration: particle.duration,
+                            opacity: particle.opacity
                         }}
                     />
                 ))}
@@ -320,7 +336,7 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ isOpen, onClose, 
 
                     {/* Header - AAA Style */}
                     <div className="relative overflow-hidden border-b-2 border-yellow-500/30 bg-gradient-to-r from-slate-900/80 via-purple-900/80 to-slate-900/80 backdrop-blur-md">
-                        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAwIDEwIEwgNDAgMTAgTSAxMCAwIEwgMTAgNDAgTSAwIDIwIEwgNDAgMjAgTSAyMCAwIEwgMjAgNDAgTSAwIDMwIEwgNDAgMzAgTSAzMCAwIEwgMzAgNDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0icmdiYSgyNTUsMjU1LDI1NSwwLjAzKSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9wYXR0ZXJuPjwvZGVmcz48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI2dyaWQpIi8+PC9zdmc+')] opacity-30" />
+                        <div className="absolute inset-0 grid-pattern-bg" />
                         
                         <div className="relative p-6">
                             <button
@@ -369,13 +385,13 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ isOpen, onClose, 
                                 {/* Animated background rays */}
                                 <div className="absolute inset-0 overflow-hidden">
                                     <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full">
-                                        {[...Array(8)].map((_, i) => (
+                                        {rayAngles.map((angle, i) => (
                                             <div
                                                 key={i}
                                                 className="absolute top-1/2 left-1/2 w-2 h-full bg-gradient-to-t from-transparent via-yellow-400/20 to-transparent"
                                                 style={{
-                                                    transform: `rotate(${i * 45}deg)`,
-                                                    transformOrigin: 'top center'
+                                                    transform: `rotate(${angle}deg)`,
+                                                    transformOrigin: 'center top'
                                                 }}
                                             />
                                         ))}
@@ -489,7 +505,7 @@ const DailyRewardsModal: React.FC<DailyRewardsModalProps> = ({ isOpen, onClose, 
                                                 {/* Animated shine effect on hover */}
                                                 {!completed && (
                                                     <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-[shimmer_2s_infinite]" />
+                                                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12 animate-shimmer" />
                                                     </div>
                                                 )}
                                                 
