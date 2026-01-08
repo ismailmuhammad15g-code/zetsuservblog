@@ -244,30 +244,22 @@ export default function UserPosts() {
 
     setUploading(true);
     try {
-      // 1. Get Signed URL from Supabase Edge Function
-      const { data, error: functionError } = await supabase.functions.invoke('get-gcs-signed-url', {
-        body: { filename: file.name, contentType: file.type, folder: 'posts' }
+      // Upload to ImgBB (free unlimited image hosting)
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData
       });
 
-      if (functionError) throw new Error(`Function error: ${functionError.message}`);
-      if (!data?.uploadUrl || !data?.publicUrl) throw new Error('Invalid response from server');
+      const data = await response.json();
 
-      const { uploadUrl, publicUrl } = data;
-
-      // 2. Upload directly to Google Cloud Storage
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type,
-        },
-        body: file,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      if (!data.success) {
+        throw new Error(data.error?.message || 'Upload failed');
       }
 
-      setCoverImage(publicUrl);
+      setCoverImage(data.data.url);
       toast({ title: "✓ تم رفع الصورة بنجاح!" });
     } catch (error: any) {
       console.error('Upload Error:', error);
@@ -292,12 +284,12 @@ export default function UserPosts() {
       return;
     }
 
-    // Validate file size (max 10MB)
-    const maxSize = 10 * 1024 * 1024;
+    // Validate file size (max 20MB for Edge Function proxy)
+    const maxSize = 20 * 1024 * 1024;
     if (file.size > maxSize) {
       toast({
         title: "File too large",
-        description: "Audio file must be less than 10MB",
+        description: "Audio file must be less than 20MB for direct upload. For larger files, please upload to Catbox.moe manually and use the URL option.",
         variant: "destructive"
       });
       return;
@@ -306,37 +298,18 @@ export default function UserPosts() {
     setUploadingAudio(true);
 
     try {
-      // 1. Get signed URL from Edge Function
-      const { data, error: urlError } = await supabase.functions.invoke('get-gcs-signed-url', {
-        body: {
-          filename: file.name,
-          contentType: file.type,
-          folder: 'soundpost'
-        }
+      // Use Supabase Edge Function to proxy the upload to Catbox (bypassing CORS)
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const { data, error } = await supabase.functions.invoke('upload-audio', {
+        body: formData,
       });
 
-      if (urlError || !data?.uploadUrl || !data?.publicUrl) {
-        console.error("Signed URL Error:", urlError, data);
-        throw new Error(urlError?.message || 'Failed to get upload URL');
-      }
+      if (error) throw error;
+      if (!data?.url) throw new Error('No URL returned from upload service');
 
-      const { uploadUrl, publicUrl } = data;
-
-      // 2. Upload directly to Google Cloud Storage
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type,
-        },
-        body: file,
-      });
-
-      if (!uploadResponse.ok) {
-        console.error("GCS Upload Error:", uploadResponse.status, uploadResponse.statusText);
-        throw new Error(`Upload failed: ${uploadResponse.status} ${uploadResponse.statusText}`);
-      }
-
-      setAudioUrl(publicUrl);
+      setAudioUrl(data.url);
       setAudioType('file');
       toast({ title: "✓ Audio uploaded successfully!" });
     } catch (error: any) {

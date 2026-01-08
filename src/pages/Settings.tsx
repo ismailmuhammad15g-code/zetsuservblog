@@ -100,28 +100,22 @@ export default function Settings() {
 
     setUploading(true);
     try {
-      // 1. Get Signed URL from Supabase Edge Function
-      const { data, error: functionError } = await supabase.functions.invoke('get-gcs-signed-url', {
-        body: { filename: file.name, contentType: file.type, folder: 'avatars' }
+      // Upload to ImgBB
+      const formData = new FormData();
+      formData.append('image', file);
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`, {
+        method: 'POST',
+        body: formData
       });
 
-      if (functionError) throw new Error(`Function error: ${functionError.message}`);
-      if (!data?.uploadUrl || !data?.publicUrl) throw new Error('Invalid response from server');
+      const data = await response.json();
 
-      const { uploadUrl, publicUrl } = data;
-
-      // 2. Upload directly to Google Cloud Storage
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type,
-        },
-        body: file,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
+      if (!data.success) {
+        throw new Error(data.error?.message || 'Upload failed');
       }
+
+      const publicUrl = data.data.url;
 
       const { error: updateError } = await supabase
         .from("profiles")

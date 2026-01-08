@@ -30,6 +30,7 @@ import { VsChallengePage } from "./pages/VsChallengePage";
 import QuizGamePage from "./pages/QuizGamePage";
 import PlayerStatsPage from "./pages/PlayerStatsPage";
 import ZersuDocPage from "./pages/ZersuDocPage";
+import AdminNotifications from "./pages/AdminNotifications";
 
 import { SoundProvider } from "./contexts/SoundContext";
 import { GameProvider } from "./contexts/GameContext";
@@ -74,6 +75,7 @@ const App = () => (
                 <Route path="/quiz/:sessionId" element={<QuizGamePage />} />
                 <Route path="/player-stats" element={<PlayerStatsPage />} />
                 <Route path="/admin/doc" element={<ZersuDocPage />} />
+                <Route path="/postsentadmin" element={<AdminNotifications />} />
 
                 {/* User posts (canonical + legacy aliases) */}
                 <Route path="/:username/post" element={<UserPosts />} />

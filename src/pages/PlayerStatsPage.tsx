@@ -138,36 +138,24 @@ const PlayerStatsPage = () => {
                 return;
             }
 
-            // 1. Get Signed URL for Upload
-            const { data: signedUrlData, error: signedUrlError } = await supabase.functions.invoke('get-gcs-signed-url', {
-                body: {
-                    filename: `avatar_${Date.now()}_${file.name}`,
-                    contentType: file.type,
-                    folder: 'profileimg' // Use requested folder
-                },
+            // Upload to ImgBB
+            const formData = new FormData();
+            formData.append('image', file);
+
+            const response = await fetch(`https://api.imgbb.com/1/upload?key=${import.meta.env.VITE_IMGBB_API_KEY}`, {
+                method: 'POST',
+                body: formData
             });
 
-            if (signedUrlError || !signedUrlData) {
-                console.error('Signed URL Error:', signedUrlError);
-                throw new Error('فشل في الحصول على رابط التحميل');
+            const data = await response.json();
+
+            if (!data.success) {
+                throw new Error(data.error?.message || 'فشل في رفع الصورة');
             }
 
-            const { uploadUrl, publicUrl } = signedUrlData;
+            const publicUrl = data.data.url;
 
-            // 2. Upload to GCS
-            const uploadResponse = await fetch(uploadUrl, {
-                method: 'PUT',
-                body: file,
-                headers: {
-                    'Content-Type': file.type,
-                },
-            });
-
-            if (!uploadResponse.ok) {
-                throw new Error('فشل في رفع الصورة');
-            }
-
-            // 3. Update Supabase Profile
+            // Update Supabase Profile
             const { error: updateError } = await supabase
                 .from('profiles')
                 .update({ avatar_url: publicUrl })
@@ -175,7 +163,7 @@ const PlayerStatsPage = () => {
 
             if (updateError) throw updateError;
 
-            // 4. Update Local State
+            // Update Local State
             setStats(prev => prev ? { ...prev, avatar_url: publicUrl } : null);
             toast.success('تم تحديث الصورة الشخصية بنجاح! ⭐');
 

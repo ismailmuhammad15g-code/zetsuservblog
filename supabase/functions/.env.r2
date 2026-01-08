@@ -1,0 +1,6 @@
+# Cloudflare R2 Configuration
+R2_ACCESS_KEY_ID=f9ef7a3142a0b6cfb2c6c8dc18d5e528
+R2_SECRET_ACCESS_KEY=a13e98683d8d25a793bb036c06d1842bbff2933948f96fe613b7207c2788919a
+R2_ENDPOINT=https://56c75157a099276e7efc245cac6c8964.r2.cloudflarestorage.com
+R2_BUCKET_NAME=zetsuservstorage
+R2_PUBLIC_URL=https://pub-cb572287d0d74318a01ff7a0247d47f1.r2.dev

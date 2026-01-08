@@ -218,7 +218,7 @@ export function PostCard({
         </div>
       </Link>
       {audioUrl && (
-        <audio ref={audioRef} src={audioUrl} preload="none" className="hidden" />
+        <audio ref={audioRef} src={audioUrl} preload="none" className="hidden" crossOrigin="anonymous" />
       )}
     </article>
   );

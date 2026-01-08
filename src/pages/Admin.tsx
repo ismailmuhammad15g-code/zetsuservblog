@@ -321,10 +321,10 @@ export default function Admin() {
     // Validate file type
     const validAudioTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/webm'];
     if (!validAudioTypes.includes(file.type)) {
-      toast({ 
-        title: "Invalid file type", 
-        description: "Please upload an audio file (MP3, WAV, OGG, or WebM)", 
-        variant: "destructive" 
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an audio file (MP3, WAV, OGG, or WebM)",
+        variant: "destructive"
       });
       return;
     }
@@ -332,10 +332,10 @@ export default function Admin() {
     // Validate file size (max 10MB)
     const maxSize = 10 * 1024 * 1024;
     if (file.size > maxSize) {
-      toast({ 
-        title: "File too large", 
-        description: "Audio file must be less than 10MB", 
-        variant: "destructive" 
+      toast({
+        title: "File too large",
+        description: "Audio file must be less than 10MB",
+        variant: "destructive"
       });
       return;
     }
@@ -343,46 +343,29 @@ export default function Admin() {
     setUploadingAudio(true);
 
     try {
-      // 1. Get signed URL from Edge Function
-      const { data, error: urlError } = await supabase.functions.invoke('get-gcs-signed-url', {
-        body: { 
-          filename: file.name, 
-          contentType: file.type,
-          folder: 'soundpost'
-        }
+      // Use Supabase Edge Function to proxy the upload to Catbox (bypassing CORS)
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const { data, error } = await supabase.functions.invoke('upload-audio', {
+        body: formData,
       });
 
-      if (urlError || !data?.uploadUrl || !data?.publicUrl) {
-        throw new Error('Failed to get upload URL');
-      }
+      if (error) throw error;
+      if (!data?.url) throw new Error('No URL returned from upload service');
 
-      const { uploadUrl, publicUrl } = data;
-
-      // 2. Upload directly to Google Cloud Storage
-      const uploadResponse = await fetch(uploadUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': file.type,
-        },
-        body: file,
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
-      }
-
-      setFormData({ 
-        ...formData, 
-        audio_url: publicUrl,
+      setFormData({
+        ...formData,
+        audio_url: data.url,
         audio_type: 'file'
       });
       toast({ title: "✓ Audio uploaded successfully!" });
     } catch (error: any) {
       console.error('Audio Upload Error:', error);
-      toast({ 
-        title: "Error uploading audio", 
-        description: error.message, 
-        variant: "destructive" 
+      toast({
+        title: "Error uploading audio",
+        description: error.message,
+        variant: "destructive"
       });
     } finally {
       setUploadingAudio(false);
@@ -562,7 +545,7 @@ export default function Admin() {
                       <Music className="h-4 w-4" />
                       Add Audio/Music (Optional)
                     </Label>
-                    
+
                     <div className="flex gap-2">
                       <Button
                         type="button"
@@ -734,8 +717,8 @@ export default function Admin() {
                                   </span>
                                 ) : (
                                   <span className={`text-xs px-2 py-1 rounded ${post.published
-                                      ? "bg-primary/10 text-primary"
-                                      : "bg-muted text-muted-foreground"
+                                    ? "bg-primary/10 text-primary"
+                                    : "bg-muted text-muted-foreground"
                                     }`}>
                                     {post.published ? "Published" : "Draft"}
                                   </span>

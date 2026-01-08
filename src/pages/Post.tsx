@@ -179,6 +179,7 @@ export default function Post() {
             src={post.audio_url}
             onEnded={() => setIsPlaying(false)}
             loop
+            crossOrigin="anonymous"
           />
         )}
 
