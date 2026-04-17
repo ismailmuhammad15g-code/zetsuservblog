@@ -73,35 +73,19 @@ serve(async (req: Request) => {
 
         console.log("[Broadcast] Starting with:", { title, message });
 
-        // 1. Get ALL Users to insert notifications for history/in-app
-        // This is crucial for the "Real-time" aspect in the Bell
-        // We fetch just IDs to minimize data transfer
-        let allUsers = [];
-        let page = 0;
-        const pageSize = 1000;
-        let hasMore = true;
-
-        // Supabase Auth API pagination allows getting all users?
-        // Actually, direct access to auth.users via admin API is better.
-        // Or we can query public.profiles if exists, but auth.users is safer source of truth.
-        // However, JS Client listUsers is paginated.
-
-        // Alternative: We can execute SQL via rpc if exposing it, but Service Key allows direct DB changes.
-        // Let's rely on a simpler approach: notifications table RLS usually relies on user_id.
-        // We will query `auth.users` via the admin client.
-
-        // Note: listUsers is the way.
+        // 1. Get ALL Users
+        // Uses admin API to get granular list
         const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers();
 
         if (usersError) throw usersError;
         if (!users || users.length === 0) {
-            return new Response(JSON.stringify({ message: "No users found" }), {
+            return new Response(JSON.stringify({ message: "No users found", count: 0 }), {
                 headers: { ...corsHeaders, "Content-Type": "application/json" },
                 status: 200
             });
         }
 
-        // 2. Insert into notifications table (Batch)
+        // 2. Insert into notifications table (Batch) with Error Tracking
         const notificationsToInsert = users.map(u => ({
             user_id: u.id,
             title: title,
@@ -111,20 +95,32 @@ serve(async (req: Request) => {
             is_read: false
         }));
 
-        // Insert in chunks of 50 to avoid request size limits
-        const chunkSize = 100;
+        let insertedCount = 0;
+        let insertErrors = [];
+
+        // Insert in chunks of 50
+        const chunkSize = 50;
         for (let i = 0; i < notificationsToInsert.length; i += chunkSize) {
             const chunk = notificationsToInsert.slice(i, i + chunkSize);
-            const { error: insertError } = await supabase
+            const { error: insertError, count } = await supabase
                 .from('notifications')
-                .insert(chunk);
+                .insert(chunk)
+                .select('id', { count: 'exact' }); // Select to ensure we get confirmation
 
-            if (insertError) console.error("Error inserting notifications chunk:", insertError);
+            if (insertError) {
+                console.error("Error inserting notifications chunk:", insertError);
+                insertErrors.push(insertError.message);
+            } else {
+                insertedCount += (chunk.length); // Assume success if no error, rough count or use returned count
+            }
         }
 
-        console.log(`[Broadcast] Inserted notifications for ${users.length} users`);
+        console.log(`[Broadcast] Database: ${insertedCount} inserted, ${notificationsToInsert.length - insertedCount} failed.`);
 
         // 3. Send Push Notifications (Best Effort)
+        let pushSentCount = 0;
+        let pushFailCount = 0;
+
         if (vapidPublicKey && vapidPrivateKey) {
             try {
                 const exportedKeys = vapidBase64UrlToExportedJwk(vapidPublicKey, vapidPrivateKey);
@@ -153,21 +149,27 @@ serve(async (req: Request) => {
                                 keys: { p256dh: sub.p256dh, auth: sub.auth }
                             });
                             await subscriber.pushTextMessage(JSON.stringify(pushMsg));
+                            pushSentCount++;
                         } catch (e) {
-                            // Ignore errors for individual pushes
+                            pushFailCount++;
+                            // console.error("Push failed for one user", e);
                         }
                     });
 
-                    // Don't await strictly, let it run or just await allSettled to not block response too long
-                    // But Edge Functions have time limits.
-                    await Promise.all(pushPromises);
+                    await Promise.allSettled(pushPromises);
                 }
             } catch (pushError) {
                 console.error("Push notification logic failed (non-fatal):", pushError);
             }
         }
 
-        return new Response(JSON.stringify({ success: true, count: users.length }), {
+        return new Response(JSON.stringify({
+            success: true,
+            count: users.length,
+            insertedCount,
+            pushSentCount,
+            errors: insertErrors
+        }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
             status: 200,
         });

@@ -61,9 +61,17 @@ export default function AdminNotifications() {
 
             if (error) throw error;
 
-            toast.success("Broadcast sent successfully! 🚀", {
-                description: `Notification sent to ${data?.count || 'all'} users.`
-            });
+            console.log("Broadcast result:", data);
+
+            if (data?.insertedCount === 0 && data?.count > 0) {
+                toast.warning("Broadcast sent but database save failed", {
+                    description: `Targeted ${data.count} users, but 0 notifications were saved. Check database permissions.`
+                });
+            } else {
+                toast.success("Broadcast sent successfully! 🚀", {
+                    description: `DB Logged: ${data?.insertedCount}/${data?.count} users. Push Sent: ${data?.pushSentCount || 0}.`
+                });
+            }
 
             setTitle("");
             setMessage("");
